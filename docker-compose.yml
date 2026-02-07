@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: dayframe-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: dayframe
+      POSTGRES_PASSWORD: dayframe
+      POSTGRES_DB: dayframe
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
