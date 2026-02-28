@@ -7,8 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
+    "db:status": "sequelize-cli db:migrate:status"
   },
   "dependencies": {
     "next": "15.3.9",
