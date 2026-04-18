@@ -1,6 +1,7 @@
 import type {
   CalendarDayDto,
   JournalEntryDto,
+  StatsActivityDayDto,
   StatsSummaryDto,
   TaskDto,
   TaskPriority,
@@ -9,7 +10,7 @@ import type {
 } from "@dayframe/types";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 export class ApiError extends Error {
   constructor(
@@ -133,6 +134,10 @@ export const api = {
   },
   stats: {
     summary: () => apiFetch<StatsSummaryDto>("/api/stats/summary"),
+    activity: (from: string, to: string) =>
+      apiFetch<StatsActivityDayDto[]>(
+        `/api/stats/activity?from=${from}&to=${to}`,
+      ),
   },
   health: () => apiFetch<{ status: string; db: string }>("/api/health"),
 };

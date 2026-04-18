@@ -59,6 +59,12 @@ export interface StatsSummaryDto {
   lastJournalDate: string | null;
 }
 
+export interface StatsActivityDayDto {
+  date: string;
+  created: number;
+  done: number;
+}
+
 export interface ApiErrorDto {
   error: {
     code:
