@@ -1,13 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { useT, type MessageKey } from "@/lib/i18n-context";
 
-const items = [
-  { value: 1, label: "Rough", color: "var(--color-mood-1)" },
-  { value: 2, label: "Low", color: "var(--color-mood-2)" },
-  { value: 3, label: "Ok", color: "var(--color-mood-3)" },
-  { value: 4, label: "Good", color: "var(--color-mood-4)" },
-  { value: 5, label: "Great", color: "var(--color-mood-5)" },
+const items: { value: number; labelKey: MessageKey; color: string }[] = [
+  { value: 1, labelKey: "journal.moodRough", color: "var(--color-mood-1)" },
+  { value: 2, labelKey: "journal.moodLow", color: "var(--color-mood-2)" },
+  { value: 3, labelKey: "journal.moodOk", color: "var(--color-mood-3)" },
+  { value: 4, labelKey: "journal.moodGood", color: "var(--color-mood-4)" },
+  { value: 5, labelKey: "journal.moodGreat", color: "var(--color-mood-5)" },
 ];
 
 export function MoodPicker({
@@ -17,8 +18,9 @@ export function MoodPicker({
   value: number | null;
   onChange: (value: number | null) => void;
 }) {
+  const { t } = useT();
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {items.map((it) => {
         const active = value === it.value;
         return (
@@ -29,7 +31,7 @@ export function MoodPicker({
             className={cn(
               "group flex flex-col items-center gap-1 py-2 px-3 rounded-lg border transition-all",
               active
-                ? "border-[color:var(--color-fg)] bg-[color:var(--color-surface)]"
+                ? "border-[color:var(--color-fg)] bg-[color:var(--color-surface-2)]"
                 : "border-[color:var(--color-border)] hover:border-[color:var(--color-border-strong)]",
             )}
             aria-pressed={active}
@@ -46,7 +48,7 @@ export function MoodPicker({
                   : "text-[color:var(--color-fg-subtle)]",
               )}
             >
-              {it.label}
+              {t(it.labelKey)}
             </span>
           </button>
         );

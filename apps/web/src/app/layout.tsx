@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { ThemeProvider } from "@/lib/theme-provider";
+import { I18nProvider } from "@/lib/i18n-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,18 +15,22 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <AuthProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            theme="light"
-            richColors
-            closeButton
-            toastOptions={{ className: "text-sm" }}
-          />
-        </AuthProvider>
+        <ThemeProvider>
+          <I18nProvider>
+            <AuthProvider>
+              {children}
+              <Toaster
+                position="top-right"
+                theme="system"
+                richColors
+                closeButton
+                toastOptions={{ className: "text-sm" }}
+              />
+            </AuthProvider>
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

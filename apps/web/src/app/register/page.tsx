@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -13,29 +13,35 @@ import { Input } from "@/components/ui/input";
 import { FieldError, Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
-
-const schema = z
-  .object({
-    username: z
-      .string()
-      .min(3, "At least 3 characters")
-      .regex(/^[a-zA-Z0-9_.-]+$/, "Letters, numbers, . _ - only"),
-    password: z.string().min(8, "At least 8 characters"),
-    confirm: z.string().min(8, "At least 8 characters"),
-  })
-  .refine((v) => v.password === v.confirm, {
-    path: ["confirm"],
-    message: "Passwords do not match",
-  });
-type FormValues = z.infer<typeof schema>;
+import { useT } from "@/lib/i18n-context";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { register: registerUser, status } = useAuth();
+  const { t } = useT();
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/app");
   }, [status, router]);
+
+  const schema = useMemo(
+    () =>
+      z
+        .object({
+          username: z
+            .string()
+            .min(3, t("auth.usernameMin"))
+            .regex(/^[a-zA-Z0-9_.-]+$/, t("auth.usernameRegex")),
+          password: z.string().min(8, t("auth.passwordMin8")),
+          confirm: z.string().min(8, t("auth.passwordMin8")),
+        })
+        .refine((v) => v.password === v.confirm, {
+          path: ["confirm"],
+          message: t("auth.passwordsDontMatch"),
+        }),
+    [t],
+  );
+  type FormValues = z.infer<typeof schema>;
 
   const {
     register,
@@ -46,27 +52,27 @@ export default function RegisterPage() {
   async function onSubmit(values: FormValues) {
     try {
       await registerUser(values.username, values.password);
-      toast.success("Account created");
+      toast.success(t("auth.accountCreated"));
       router.replace("/app");
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "Registration failed";
+        err instanceof ApiError ? err.message : t("auth.registerFailed");
       toast.error(message);
     }
   }
 
   return (
     <AuthCard
-      title="Create your account"
-      subtitle="Start building a calmer, more deliberate day."
+      title={t("auth.registerTitle")}
+      subtitle={t("auth.registerSubtitle")}
       footer={
         <>
-          Already have an account?{" "}
+          {t("auth.alreadyHaveAccount")}{" "}
           <Link
             href="/login"
             className="text-[color:var(--color-fg)] underline underline-offset-4"
           >
-            Sign in
+            {t("common.signIn")}
           </Link>
         </>
       }
@@ -74,7 +80,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="username" required>
-            Username
+            {t("auth.username")}
           </Label>
           <Input
             id="username"
@@ -87,7 +93,7 @@ export default function RegisterPage() {
         </div>
         <div>
           <Label htmlFor="password" required>
-            Password
+            {t("auth.password")}
           </Label>
           <Input
             id="password"
@@ -100,7 +106,7 @@ export default function RegisterPage() {
         </div>
         <div>
           <Label htmlFor="confirm" required>
-            Confirm password
+            {t("auth.confirmPassword")}
           </Label>
           <Input
             id="confirm"
@@ -112,7 +118,7 @@ export default function RegisterPage() {
           <FieldError>{errors.confirm?.message}</FieldError>
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Creating…" : "Create account"}
+          {isSubmitting ? t("common.creating") : t("common.createAccount")}
         </Button>
       </form>
     </AuthCard>
