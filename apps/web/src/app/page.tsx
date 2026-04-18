@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -7,101 +9,109 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { useT } from "@/lib/i18n-context";
 
 export default function LandingPage() {
+  const { t } = useT();
+
   return (
-    <div className="min-h-screen bg-[color:var(--color-bg)]">
-      <header className="h-14 flex items-center justify-between max-w-6xl mx-auto px-6">
+    <div className="relative min-h-screen bg-[color:var(--color-bg)] overflow-hidden">
+      <div className="glow-ambient" aria-hidden="true" />
+      <div className="absolute inset-0 grid-bg opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden="true" />
+
+      <header className="relative z-10 h-16 flex items-center justify-between max-w-6xl mx-auto px-6">
         <Link href="/" className="flex items-center gap-2">
           <div className="h-7 w-7 rounded-lg bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] flex items-center justify-center text-sm font-semibold">
             D
           </div>
           <span className="text-[15px] font-semibold tracking-tight">
-            Dayframe
+            {t("common.appName")}
           </span>
         </Link>
         <div className="flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+          <span className="mx-1 h-5 w-px bg-[color:var(--color-border)]" />
           <Link
             href="/login"
-            className="text-sm text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] h-9 px-3 inline-flex items-center"
+            className="hidden sm:inline-flex text-sm text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] h-9 px-3 items-center"
           >
-            Sign in
+            {t("common.signIn")}
           </Link>
           <Link href="/register">
-            <Button size="sm">Get started</Button>
+            <Button size="sm">{t("common.getStarted")}</Button>
           </Link>
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--color-fg-muted)] bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-full px-3 py-1">
+      <section className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
+        <div className="max-w-3xl animate-fade-up">
+          <div className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--color-fg-muted)] bg-[color:var(--color-surface)]/70 backdrop-blur-sm border border-[color:var(--color-border)] rounded-full px-3 py-1">
             <Sparkles size={12} />
-            A calm execution system
+            {t("landing.eyebrow")}
           </div>
           <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-[color:var(--color-fg)] leading-[1.05]">
-            Plan the day.
+            {t("landing.headline1")}
             <br />
-            Write the story.
+            {t("landing.headline2")}
             <br />
             <span className="text-[color:var(--color-fg-subtle)]">
-              See the pattern.
+              {t("landing.headline3")}
             </span>
           </h1>
           <p className="mt-6 text-lg text-[color:var(--color-fg-muted)] max-w-2xl leading-relaxed">
-            Dayframe is a personal operating system for focused individuals.
-            Tasks, journaling, and calendar visibility — on one quiet surface,
-            built to reward showing up.
+            {t("landing.lede")}
           </p>
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/register">
               <Button size="lg">
-                Start free
+                {t("common.startFree")}
                 <ArrowRight size={16} />
               </Button>
             </Link>
             <Link href="/login">
               <Button size="lg" variant="secondary">
-                I have an account
+                {t("common.haveAccount")}
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 pb-24">
+      <section className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
         <div className="grid md:grid-cols-3 gap-4">
           <Feature
             icon={<ListChecks size={18} />}
-            title="Task discipline"
-            body="Capture what matters. Move it through OPEN, DONE, or drop it — with priorities that actually steer your attention."
+            title={t("landing.feat1Title")}
+            body={t("landing.feat1Body")}
           />
           <Feature
             icon={<NotebookPen size={18} />}
-            title="Daily journal"
-            body="One entry per day. Mood, wins, blockers, notes. A quiet ritual you can keep."
+            title={t("landing.feat2Title")}
+            body={t("landing.feat2Body")}
           />
           <Feature
             icon={<CalendarRange size={18} />}
-            title="Calendar visibility"
-            body="A month view that stitches tasks and journaling together. Your rhythm, made visible."
+            title={t("landing.feat3Title")}
+            body={t("landing.feat3Body")}
           />
         </div>
       </section>
 
-      <section className="border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
+      <section className="relative z-10 border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)]/60 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-6 py-20 text-center">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            Build the week you meant to have.
+            {t("landing.ctaTitle")}
           </h2>
           <p className="mt-3 text-[color:var(--color-fg-muted)] max-w-xl mx-auto">
-            No clutter, no gamification. Just a workspace that treats your
-            attention with respect.
+            {t("landing.ctaBody")}
           </p>
           <div className="mt-6">
             <Link href="/register">
               <Button size="lg">
-                Create your account
+                {t("common.createAccount")}
                 <ArrowRight size={16} />
               </Button>
             </Link>
@@ -109,9 +119,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="py-8 text-center text-xs text-[color:var(--color-fg-subtle)]">
-        © {new Date().getFullYear()} Dayframe. A disciplined daily operating
-        system.
+      <footer className="relative z-10 py-8 text-center text-xs text-[color:var(--color-fg-subtle)]">
+        © {new Date().getFullYear()} {t("common.appName")}. {t("landing.footer")}
       </footer>
     </div>
   );
@@ -127,8 +136,8 @@ function Feature({
   body: string;
 }) {
   return (
-    <div className="bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-xl p-6 shadow-[var(--shadow-card)]">
-      <div className="h-9 w-9 rounded-lg bg-[color:var(--color-surface-2)] flex items-center justify-center text-[color:var(--color-fg)]">
+    <div className="group relative bg-[color:var(--color-surface)]/80 backdrop-blur-sm border border-[color:var(--color-border)] rounded-xl p-6 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-pop)] hover:-translate-y-0.5 transition-all duration-300">
+      <div className="h-9 w-9 rounded-lg bg-[color:var(--color-surface-2)] flex items-center justify-center text-[color:var(--color-fg)] group-hover:bg-[color:var(--color-accent)] group-hover:text-[color:var(--color-accent-fg)] transition-colors">
         {icon}
       </div>
       <h3 className="mt-4 text-[15px] font-semibold tracking-tight">{title}</h3>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import type { JournalEntryDto } from "@dayframe/types";
 import { PageHeader } from "@/components/ui/page-header";
@@ -11,7 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { LoadingState } from "@/components/ui/empty-state";
 import { MoodPicker } from "@/components/journal/mood-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/lib/i18n-context";
 import {
   addDays,
   parseISO,
@@ -24,7 +26,7 @@ import { toast } from "sonner";
 
 function JournalEditor() {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const { t, locale } = useT();
   const initialDate = searchParams.get("date") ?? todayIso();
   const [date, setDate] = useState<string>(initialDate);
   const [entry, setEntry] = useState<JournalEntryDto | null>(null);
@@ -35,31 +37,34 @@ function JournalEditor() {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async (d: string) => {
-    setLoading(true);
-    try {
-      const data = await api.journal.get(d);
-      setEntry(data);
-      setMood(data.mood);
-      setWins(data.wins ?? "");
-      setBlockers(data.blockers ?? "");
-      setNotes(data.notes ?? "");
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
-        setEntry(null);
-        setMood(null);
-        setWins("");
-        setBlockers("");
-        setNotes("");
-      } else {
-        toast.error(
-          err instanceof ApiError ? err.message : "Failed to load journal",
-        );
+  const load = useCallback(
+    async (d: string) => {
+      setLoading(true);
+      try {
+        const data = await api.journal.get(d);
+        setEntry(data);
+        setMood(data.mood);
+        setWins(data.wins ?? "");
+        setBlockers(data.blockers ?? "");
+        setNotes(data.notes ?? "");
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 404) {
+          setEntry(null);
+          setMood(null);
+          setWins("");
+          setBlockers("");
+          setNotes("");
+        } else {
+          toast.error(
+            err instanceof ApiError ? err.message : t("journal.loadFailed"),
+          );
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [t],
+  );
 
   useEffect(() => {
     void load(date);
@@ -78,9 +83,11 @@ function JournalEditor() {
         notes: notes.trim() ? notes : null,
       });
       setEntry(saved);
-      toast.success("Journal saved");
+      toast.success(t("journal.saved"));
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Save failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("journal.saveFailed"),
+      );
     } finally {
       setSaving(false);
     }
@@ -94,38 +101,43 @@ function JournalEditor() {
   return (
     <div>
       <PageHeader
-        title="Journal"
-        description={prettyDate(date)}
+        title={t("journal.title")}
+        description={prettyDate(date, locale)}
         actions={
           <>
-            <div className="flex items-center gap-1 border border-[color:var(--color-border)] rounded-md p-0.5 bg-[color:var(--color-surface)]">
+            <div className="flex items-center gap-1">
               <button
                 onClick={() => shift(-1)}
-                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+                className="h-10 w-10 rounded-md inline-flex items-center justify-center border border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface-2)] transition-colors"
                 aria-label="Previous day"
               >
                 <ChevronLeft size={16} />
               </button>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="h-8 px-2 text-sm bg-transparent outline-none"
+                onChange={(v) => v && setDate(v)}
+                allowClear={false}
+                align="end"
+                className="w-44"
               />
               <button
                 onClick={() => shift(1)}
-                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+                className="h-10 w-10 rounded-md inline-flex items-center justify-center border border-[color:var(--color-border)] bg-[color:var(--color-surface)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface-2)] transition-colors"
                 aria-label="Next day"
               >
                 <ChevronRight size={16} />
               </button>
             </div>
             <Button variant="secondary" onClick={() => setDate(todayIso())}>
-              Today
+              {t("common.today")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               <Save size={16} />
-              {saving ? "Saving…" : entry ? "Update" : "Save"}
+              {saving
+                ? t("common.saving")
+                : entry
+                  ? t("common.update")
+                  : t("common.save")}
             </Button>
           </>
         }
@@ -137,11 +149,11 @@ function JournalEditor() {
         <div className="space-y-4 max-w-3xl">
           <Card>
             <CardBody>
-              <Label>Mood</Label>
+              <Label>{t("journal.mood")}</Label>
               <MoodPicker value={mood} onChange={setMood} />
               {entry && mood !== entry.mood && (
                 <p className="mt-2 text-xs text-[color:var(--color-fg-subtle)]">
-                  Unsaved mood change
+                  {t("journal.unsavedMood")}
                 </p>
               )}
             </CardBody>
@@ -149,11 +161,11 @@ function JournalEditor() {
 
           <Card>
             <CardBody>
-              <Label htmlFor="wins">Wins</Label>
+              <Label htmlFor="wins">{t("journal.wins")}</Label>
               <Textarea
                 id="wins"
                 rows={3}
-                placeholder="What went well?"
+                placeholder={t("journal.winsPlaceholder")}
                 value={wins}
                 onChange={(e) => setWins(e.target.value)}
               />
@@ -162,11 +174,11 @@ function JournalEditor() {
 
           <Card>
             <CardBody>
-              <Label htmlFor="blockers">Blockers</Label>
+              <Label htmlFor="blockers">{t("journal.blockers")}</Label>
               <Textarea
                 id="blockers"
                 rows={3}
-                placeholder="What got in the way?"
+                placeholder={t("journal.blockersPlaceholder")}
                 value={blockers}
                 onChange={(e) => setBlockers(e.target.value)}
               />
@@ -175,11 +187,11 @@ function JournalEditor() {
 
           <Card>
             <CardBody>
-              <Label htmlFor="notes">Notes</Label>
+              <Label htmlFor="notes">{t("journal.notes")}</Label>
               <Textarea
                 id="notes"
                 rows={6}
-                placeholder="Anything else worth remembering…"
+                placeholder={t("journal.notesPlaceholder")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -189,7 +201,11 @@ function JournalEditor() {
           <div className="flex items-center justify-end gap-2">
             <Button onClick={handleSave} disabled={saving} size="lg">
               <Save size={16} />
-              {saving ? "Saving…" : entry ? "Update entry" : "Save entry"}
+              {saving
+                ? t("common.saving")
+                : entry
+                  ? t("journal.updateEntry")
+                  : t("journal.saveEntry")}
             </Button>
           </div>
         </div>
