@@ -7,6 +7,13 @@ function daysBetween(from: string, to: string): number {
   return Math.floor((b - a) / (1000 * 60 * 60 * 24)) + 1;
 }
 
+function toLocalIso(d: Date | string | null | undefined): string | null {
+  if (!d) return null;
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().slice(0, 10);
+}
+
 function dateRange(from: string, to: string): string[] {
   const dates: string[] = [];
   const current = new Date(from + "T00:00:00Z");
@@ -27,14 +34,15 @@ export const calendarService = {
 
     const [journals, tasks] = await Promise.all([
       journalRepository.findByUserAndDateRange(userId, from, to),
-      taskRepository.findByUserAndDueDateRange(userId, from, to),
+      taskRepository.findByUserForCalendar(userId, from, to),
     ]);
 
     const journalMap = new Map(journals.map((j) => [j.date, j]));
 
     const tasksByDate = new Map<string, typeof tasks>();
     for (const task of tasks) {
-      const d = task.due_date!;
+      const d = task.due_date ?? toLocalIso(task.created_at);
+      if (!d) continue;
       if (!tasksByDate.has(d)) tasksByDate.set(d, []);
       tasksByDate.get(d)!.push(task);
     }

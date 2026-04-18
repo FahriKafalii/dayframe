@@ -23,7 +23,8 @@
     "newTask": "Yeni görev",
     "welcomeBack": "Tekrar hoş geldin",
     "signedOut": "Çıkış yapıldı",
-    "viewAll": "Tümünü gör"
+    "viewAll": "Tümünü gör",
+    "tryAgain": "Tekrar dene"
   },
   "theme": {
     "label": "Tema",

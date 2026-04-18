@@ -115,7 +115,11 @@ export default function CalendarPage() {
       />
 
       {error ? (
-        <ErrorState message={error} onRetry={load} />
+        <ErrorState
+          message={error}
+          onRetry={load}
+          retryLabel={t("common.tryAgain")}
+        />
       ) : !days ? (
         <LoadingState />
       ) : (
