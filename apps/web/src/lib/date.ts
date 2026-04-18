@@ -10,6 +10,15 @@ import {
   startOfWeek,
   subDays,
 } from "date-fns";
+import { enUS, tr } from "date-fns/locale";
+
+type LocaleCode = "en" | "tr";
+
+const locales = { en: enUS, tr } as const;
+
+function loc(l?: LocaleCode) {
+  return locales[l ?? "en"];
+}
 
 export function todayIso(): string {
   const d = new Date();
@@ -24,16 +33,16 @@ export function fromIso(s: string): Date {
   return parseISO(s);
 }
 
-export function prettyDate(s: string): string {
-  return format(parseISO(s), "EEEE, MMMM d, yyyy");
+export function prettyDate(s: string, l?: LocaleCode): string {
+  return format(parseISO(s), "EEEE, MMMM d, yyyy", { locale: loc(l) });
 }
 
-export function shortDate(s: string): string {
-  return format(parseISO(s), "MMM d");
+export function shortDate(s: string, l?: LocaleCode): string {
+  return format(parseISO(s), "MMM d", { locale: loc(l) });
 }
 
-export function monthLabel(d: Date): string {
-  return format(d, "MMMM yyyy");
+export function monthLabel(d: Date, l?: LocaleCode): string {
+  return format(d, "MMMM yyyy", { locale: loc(l) });
 }
 
 export function monthGridDays(anchor: Date): Date[] {
