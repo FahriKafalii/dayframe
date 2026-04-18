@@ -1,0 +1,27 @@
+{
+  "name": "@dayframe/db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "dotenv -e ../../.env -- sequelize-cli db:migrate",
+    "db:migrate:undo": "dotenv -e ../../.env -- sequelize-cli db:migrate:undo",
+    "db:migrate:undo:all": "dotenv -e ../../.env -- sequelize-cli db:migrate:undo:all",
+    "db:status": "dotenv -e ../../.env -- sequelize-cli db:migrate:status"
+  },
+  "dependencies": {
+    "@dayframe/lib": "workspace:*",
+    "@dayframe/models": "workspace:*",
+    "pg": "^8.19.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "dotenv-cli": "^7.4.4",
+    "sequelize-cli": "^6.6.5",
+    "typescript": "^5"
+  }
+}
