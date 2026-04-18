@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -13,20 +13,26 @@ import { Input } from "@/components/ui/input";
 import { FieldError, Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
-
-const schema = z.object({
-  username: z.string().min(3, "At least 3 characters"),
-  password: z.string().min(6, "At least 6 characters"),
-});
-type FormValues = z.infer<typeof schema>;
+import { useT } from "@/lib/i18n-context";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, status } = useAuth();
+  const { t } = useT();
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/app");
   }, [status, router]);
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        username: z.string().min(3, t("auth.usernameMin")),
+        password: z.string().min(6, t("auth.passwordMin6")),
+      }),
+    [t],
+  );
+  type FormValues = z.infer<typeof schema>;
 
   const {
     register,
@@ -37,27 +43,27 @@ export default function LoginPage() {
   async function onSubmit(values: FormValues) {
     try {
       await login(values.username, values.password);
-      toast.success("Welcome back");
+      toast.success(t("common.welcomeBack"));
       router.replace("/app");
     } catch (err) {
       const message =
-        err instanceof ApiError ? err.message : "Sign in failed";
+        err instanceof ApiError ? err.message : t("auth.signInFailed");
       toast.error(message);
     }
   }
 
   return (
     <AuthCard
-      title="Sign in"
-      subtitle="Welcome back. Continue where you left off."
+      title={t("auth.signInTitle")}
+      subtitle={t("auth.signInSubtitle")}
       footer={
         <>
-          New here?{" "}
+          {t("auth.newHere")}{" "}
           <Link
             href="/register"
             className="text-[color:var(--color-fg)] underline underline-offset-4"
           >
-            Create an account
+            {t("common.createAccount")}
           </Link>
         </>
       }
@@ -65,7 +71,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="username" required>
-            Username
+            {t("auth.username")}
           </Label>
           <Input
             id="username"
@@ -78,7 +84,7 @@ export default function LoginPage() {
         </div>
         <div>
           <Label htmlFor="password" required>
-            Password
+            {t("auth.password")}
           </Label>
           <Input
             id="password"
@@ -90,7 +96,7 @@ export default function LoginPage() {
           <FieldError>{errors.password?.message}</FieldError>
         </div>
         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? t("common.signingIn") : t("common.signIn")}
         </Button>
       </form>
     </AuthCard>

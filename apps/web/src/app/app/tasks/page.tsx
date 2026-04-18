@@ -6,8 +6,8 @@ import type { TaskDto, TaskStatus } from "@dayframe/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Modal } from "@/components/ui/modal";
 import {
@@ -18,11 +18,13 @@ import {
 import { TaskRow } from "@/components/tasks/task-row";
 import { TaskForm } from "@/components/tasks/task-form";
 import { api, ApiError } from "@/lib/api";
+import { useT } from "@/lib/i18n-context";
 import { toast } from "sonner";
 
 type Filter = "ALL" | TaskStatus;
 
 export default function TasksPage() {
+  const { t } = useT();
   const [tasks, setTasks] = useState<TaskDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<Filter>("ALL");
@@ -48,9 +50,9 @@ export default function TasksPage() {
       const data = await api.tasks.list(filters);
       setTasks(data);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to load tasks");
+      setError(err instanceof ApiError ? err.message : t("tasks.loadFailed"));
     }
-  }, [status, from, to]);
+  }, [status, from, to, t]);
 
   useEffect(() => {
     void load();
@@ -61,29 +63,33 @@ export default function TasksPage() {
       return { total: 0, open: 0, done: 0, canceled: 0 };
     return {
       total: tasks.length,
-      open: tasks.filter((t) => t.status === "OPEN").length,
-      done: tasks.filter((t) => t.status === "DONE").length,
-      canceled: tasks.filter((t) => t.status === "CANCELED").length,
+      open: tasks.filter((x) => x.status === "OPEN").length,
+      done: tasks.filter((x) => x.status === "DONE").length,
+      canceled: tasks.filter((x) => x.status === "CANCELED").length,
     };
   }, [tasks]);
 
-  async function handleToggleDone(t: TaskDto) {
+  async function handleToggleDone(task: TaskDto) {
     try {
-      await api.tasks.update(t.id, {
-        status: t.status === "DONE" ? "OPEN" : "DONE",
+      await api.tasks.update(task.id, {
+        status: task.status === "DONE" ? "OPEN" : "DONE",
       });
       void load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Update failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("dashboard.updateFailed"),
+      );
     }
   }
 
-  async function handleCancel(t: TaskDto) {
+  async function handleCancel(task: TaskDto) {
     try {
-      await api.tasks.update(t.id, { status: "CANCELED" });
+      await api.tasks.update(task.id, { status: "CANCELED" });
       void load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Update failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("dashboard.updateFailed"),
+      );
     }
   }
 
@@ -97,10 +103,12 @@ export default function TasksPage() {
     try {
       await api.tasks.create(values);
       setShowCreate(false);
-      toast.success("Task created");
+      toast.success(t("tasks.created"));
       void load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Create failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("dashboard.createFailed"),
+      );
     } finally {
       setCreating(false);
     }
@@ -117,10 +125,12 @@ export default function TasksPage() {
     try {
       await api.tasks.update(editing.id, values);
       setEditing(null);
-      toast.success("Task updated");
+      toast.success(t("tasks.updated"));
       void load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Update failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("dashboard.updateFailed"),
+      );
     } finally {
       setUpdating(false);
     }
@@ -130,23 +140,25 @@ export default function TasksPage() {
     if (!deleteTarget) return;
     try {
       await api.tasks.remove(deleteTarget.id);
-      toast.success("Task deleted");
+      toast.success(t("tasks.deleted"));
       setDeleteTarget(null);
       void load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Delete failed");
+      toast.error(
+        err instanceof ApiError ? err.message : t("dashboard.updateFailed"),
+      );
     }
   }
 
   return (
     <div>
       <PageHeader
-        title="Tasks"
-        description="Everything you've committed to do — with status, priority, and due dates."
+        title={t("tasks.title")}
+        description={t("tasks.description")}
         actions={
           <Button onClick={() => setShowCreate(true)}>
             <Plus size={16} />
-            New task
+            {t("common.newTask")}
           </Button>
         }
       />
@@ -155,34 +167,34 @@ export default function TasksPage() {
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div>
-              <Label htmlFor="filter-status">Status</Label>
+              <Label htmlFor="filter-status">{t("tasks.status")}</Label>
               <Select
                 id="filter-status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as Filter)}
               >
-                <option value="ALL">All</option>
-                <option value="OPEN">Open</option>
-                <option value="DONE">Done</option>
-                <option value="CANCELED">Canceled</option>
+                <option value="ALL">{t("tasks.filterAll")}</option>
+                <option value="OPEN">{t("tasks.filterOpen")}</option>
+                <option value="DONE">{t("tasks.filterDone")}</option>
+                <option value="CANCELED">{t("tasks.filterCanceled")}</option>
               </Select>
             </div>
             <div>
-              <Label htmlFor="filter-from">From</Label>
-              <Input
+              <Label htmlFor="filter-from">{t("tasks.from")}</Label>
+              <DatePicker
                 id="filter-from"
-                type="date"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
+                value={from || null}
+                onChange={(v) => setFrom(v ?? "")}
+                maxDate={to || undefined}
               />
             </div>
             <div>
-              <Label htmlFor="filter-to">To</Label>
-              <Input
+              <Label htmlFor="filter-to">{t("tasks.to")}</Label>
+              <DatePicker
                 id="filter-to"
-                type="date"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
+                value={to || null}
+                onChange={(v) => setTo(v ?? "")}
+                minDate={from || undefined}
               />
             </div>
             <div className="flex items-end">
@@ -195,13 +207,17 @@ export default function TasksPage() {
                   setTo("");
                 }}
               >
-                Reset filters
+                {t("tasks.resetFilters")}
               </Button>
             </div>
           </div>
           <div className="mt-3 text-xs text-[color:var(--color-fg-subtle)]">
-            {counts.total} total · {counts.open} open · {counts.done} done ·{" "}
-            {counts.canceled} canceled
+            {t("tasks.totalCounts", {
+              total: counts.total,
+              open: counts.open,
+              done: counts.done,
+              canceled: counts.canceled,
+            })}
           </div>
         </CardBody>
       </Card>
@@ -215,22 +231,22 @@ export default function TasksPage() {
           <div className="p-6">
             <EmptyState
               icon={<ListChecks size={18} />}
-              title="No tasks here"
-              description="Adjust filters, or capture the next thing you'll do."
+              title={t("tasks.emptyTitle")}
+              description={t("tasks.emptyBody")}
               action={
                 <Button onClick={() => setShowCreate(true)}>
                   <Plus size={16} />
-                  New task
+                  {t("common.newTask")}
                 </Button>
               }
             />
           </div>
         ) : (
           <div>
-            {tasks.map((t) => (
+            {tasks.map((task) => (
               <TaskRow
-                key={t.id}
-                task={t}
+                key={task.id}
+                task={task}
                 onToggleDone={handleToggleDone}
                 onCancel={handleCancel}
                 onEdit={setEditing}
@@ -244,11 +260,11 @@ export default function TasksPage() {
       <Modal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        title="New task"
-        description="Capture it now, decide priority later."
+        title={t("tasks.newTaskTitle")}
+        description={t("tasks.newTaskSubtitle")}
       >
         <TaskForm
-          submitLabel="Create task"
+          submitLabel={t("tasks.createBtn")}
           submitting={creating}
           onSubmit={handleCreate}
           onCancel={() => setShowCreate(false)}
@@ -258,13 +274,13 @@ export default function TasksPage() {
       <Modal
         open={!!editing}
         onClose={() => setEditing(null)}
-        title="Edit task"
-        description="Update title, notes, priority, or due date."
+        title={t("tasks.editTitle")}
+        description={t("tasks.editSubtitle")}
       >
         {editing && (
           <TaskForm
             initial={editing}
-            submitLabel="Save changes"
+            submitLabel={t("tasks.saveChanges")}
             submitting={updating}
             onSubmit={handleUpdate}
             onCancel={() => setEditing(null)}
@@ -275,25 +291,25 @@ export default function TasksPage() {
       <Modal
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
-        title="Delete task?"
-        description="This cannot be undone."
+        title={t("tasks.deletePromptTitle")}
+        description={t("tasks.deletePromptBody")}
         footer={
           <>
             <Button
               variant="secondary"
               onClick={() => setDeleteTarget(null)}
             >
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button variant="danger" onClick={handleDelete}>
-              Delete
+              {t("common.delete")}
             </Button>
           </>
         }
       >
         {deleteTarget && (
           <p className="text-sm text-[color:var(--color-fg-muted)]">
-            You&apos;re about to delete{" "}
+            {t("tasks.deletePromptLead")}{" "}
             <span className="font-medium text-[color:var(--color-fg)]">
               “{deleteTarget.title}”
             </span>

@@ -7,31 +7,33 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/lib/i18n-context";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
+  const { t } = useT();
   const router = useRouter();
 
   async function handleLogout() {
     await logout();
-    toast.success("Signed out");
+    toast.success(t("common.signedOut"));
     router.push("/login");
   }
 
   return (
     <div>
       <PageHeader
-        title="Settings"
-        description="Your account and preferences."
+        title={t("settings.title")}
+        description={t("settings.description")}
       />
 
       <div className="space-y-4 max-w-2xl">
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Profile</CardTitle>
+              <CardTitle>{t("settings.profileTitle")}</CardTitle>
               <p className="text-sm text-[color:var(--color-fg-subtle)] mt-0.5">
-                How you show up in Dayframe.
+                {t("settings.profileSub")}
               </p>
             </div>
           </CardHeader>
@@ -53,15 +55,15 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Preferences</CardTitle>
+              <CardTitle>{t("settings.preferencesTitle")}</CardTitle>
               <p className="text-sm text-[color:var(--color-fg-subtle)] mt-0.5">
-                More settings coming soon.
+                {t("settings.preferencesSub")}
               </p>
             </div>
           </CardHeader>
           <CardBody>
             <div className="text-sm text-[color:var(--color-fg-subtle)]">
-              Timezone, notifications, and data export will live here.
+              {t("settings.preferencesBody")}
             </div>
           </CardBody>
         </Card>
@@ -69,16 +71,16 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Session</CardTitle>
+              <CardTitle>{t("settings.sessionTitle")}</CardTitle>
               <p className="text-sm text-[color:var(--color-fg-subtle)] mt-0.5">
-                Sign out of this browser.
+                {t("settings.sessionSub")}
               </p>
             </div>
           </CardHeader>
           <CardBody>
             <Button variant="danger" onClick={handleLogout}>
               <LogOut size={16} />
-              Sign out
+              {t("common.signOut")}
             </Button>
           </CardBody>
         </Card>

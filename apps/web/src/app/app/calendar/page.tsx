@@ -8,7 +8,7 @@ import {
   NotebookPen,
   PenLine,
 } from "lucide-react";
-import type { CalendarDayDto } from "@dayframe/types";
+import type { CalendarDayDto, TaskStatus } from "@dayframe/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { ErrorState, LoadingState } from "@/components/ui/empty-state";
 import { moodColor } from "@/components/journal/mood-picker";
 import { api, ApiError } from "@/lib/api";
+import { useT, type MessageKey } from "@/lib/i18n-context";
 import {
   addMonths,
   monthGridDays,
@@ -26,7 +27,24 @@ import {
 } from "@/lib/date";
 import { cn } from "@/lib/cn";
 
+const taskStatusKey: Record<TaskStatus, MessageKey> = {
+  OPEN: "tasks.statusOpen",
+  DONE: "tasks.statusDone",
+  CANCELED: "tasks.statusCanceled",
+};
+
+const dayKeys: MessageKey[] = [
+  "calendar.mondayShort",
+  "calendar.tuesdayShort",
+  "calendar.wednesdayShort",
+  "calendar.thursdayShort",
+  "calendar.fridayShort",
+  "calendar.saturdayShort",
+  "calendar.sundayShort",
+];
+
 export default function CalendarPage() {
+  const { t, locale } = useT();
   const [anchor, setAnchor] = useState<Date>(new Date());
   const [days, setDays] = useState<CalendarDayDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,10 +61,10 @@ export default function CalendarPage() {
       setDays(data);
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : "Failed to load calendar",
+        err instanceof ApiError ? err.message : t("calendar.loadFailed"),
       );
     }
-  }, [from, to]);
+  }, [from, to, t]);
 
   useEffect(() => {
     void load();
@@ -63,30 +81,30 @@ export default function CalendarPage() {
   return (
     <div>
       <PageHeader
-        title="Calendar"
-        description="A month view that stitches tasks and journaling together."
+        title={t("calendar.title")}
+        description={t("calendar.description")}
         actions={
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
               onClick={() => setAnchor(new Date())}
             >
-              Today
+              {t("common.today")}
             </Button>
             <div className="flex items-center gap-1 border border-[color:var(--color-border)] rounded-md p-0.5 bg-[color:var(--color-surface)]">
               <button
                 onClick={() => setAnchor((d) => addMonths(d, -1))}
-                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] transition-colors"
                 aria-label="Previous month"
               >
                 <ChevronLeft size={16} />
               </button>
               <span className="text-sm font-medium px-3 min-w-36 text-center">
-                {monthLabel(anchor)}
+                {monthLabel(anchor, locale)}
               </span>
               <button
                 onClick={() => setAnchor((d) => addMonths(d, 1))}
-                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+                className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] transition-colors"
                 aria-label="Next month"
               >
                 <ChevronRight size={16} />
@@ -104,9 +122,9 @@ export default function CalendarPage() {
         <div className="grid lg:grid-cols-[1fr_320px] gap-6">
           <Card>
             <div className="grid grid-cols-7 text-[11px] uppercase tracking-wide font-medium text-[color:var(--color-fg-subtle)] border-b border-[color:var(--color-border)]">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                <div key={d} className="py-2 px-2">
-                  {d}
+              {dayKeys.map((k) => (
+                <div key={k} className="py-2 px-2">
+                  {t(k)}
                 </div>
               ))}
             </div>
@@ -155,17 +173,17 @@ export default function CalendarPage() {
                       <div className="mt-1 flex flex-wrap gap-1">
                         {day.tasks.openCount > 0 && (
                           <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[color:var(--color-surface-2)] border border-[color:var(--color-border)] text-[color:var(--color-fg-muted)]">
-                            {day.tasks.openCount} open
+                            {day.tasks.openCount} {t("calendar.statOpen").toLowerCase()}
                           </span>
                         )}
                         {day.tasks.doneCount > 0 && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800">
-                            {day.tasks.doneCount} done
+                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[color:var(--color-success-soft)] border border-[color:var(--color-success)]/30 text-[color:var(--color-success)]">
+                            {day.tasks.doneCount} {t("calendar.statDone").toLowerCase()}
                           </span>
                         )}
                         {day.journal.exists && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-800">
-                            <PenLine size={10} /> journal
+                          <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[color:var(--color-info-soft)] border border-[color:var(--color-info)]/30 text-[color:var(--color-info)]">
+                            <PenLine size={10} /> {t("calendar.journalLabel").toLowerCase()}
                           </span>
                         )}
                       </div>
@@ -180,22 +198,22 @@ export default function CalendarPage() {
             <Card>
               <CardHeader>
                 <div>
-                  <CardTitle>{prettyDate(selected)}</CardTitle>
+                  <CardTitle>{prettyDate(selected, locale)}</CardTitle>
                   <p className="text-xs text-[color:var(--color-fg-subtle)] mt-0.5">
-                    Day detail
+                    {t("calendar.dayDetail")}
                   </p>
                 </div>
               </CardHeader>
               <CardBody>
                 {!selectedDay ? (
                   <p className="text-sm text-[color:var(--color-fg-subtle)]">
-                    No data for this day.
+                    {t("calendar.noData")}
                   </p>
                 ) : (
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-[color:var(--color-fg-subtle)] mb-1.5">
-                        Journal
+                        {t("calendar.journalLabel")}
                       </p>
                       {selectedDay.journal.exists ? (
                         <div className="flex items-center gap-2">
@@ -209,12 +227,14 @@ export default function CalendarPage() {
                               }}
                             />
                           )}
-                          <span className="text-sm">Entry exists</span>
+                          <span className="text-sm">
+                            {t("calendar.entryExists")}
+                          </span>
                           <Link
                             href={`/app/journal?date=${selected}`}
                             className="ml-auto text-xs underline text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]"
                           >
-                            Open
+                            {t("common.open")}
                           </Link>
                         </div>
                       ) : (
@@ -223,47 +243,53 @@ export default function CalendarPage() {
                           className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-fg)] underline underline-offset-4"
                         >
                           <NotebookPen size={14} />
-                          Write an entry
+                          {t("calendar.writeEntry")}
                         </Link>
                       )}
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-wide text-[color:var(--color-fg-subtle)] mb-1.5">
-                        Tasks due
+                        {t("calendar.tasksDue")}
                       </p>
                       {selectedDay.tasks.due.length === 0 ? (
                         <p className="text-sm text-[color:var(--color-fg-subtle)]">
-                          Nothing due.
+                          {t("calendar.nothingDue")}
                         </p>
                       ) : (
                         <ul className="space-y-1.5">
-                          {selectedDay.tasks.due.map((t) => (
+                          {selectedDay.tasks.due.map((task) => (
                             <li
-                              key={t.id}
+                              key={task.id}
                               className="flex items-center gap-2 text-sm"
                             >
                               <Badge
                                 tone={
-                                  t.status === "DONE"
+                                  task.status === "DONE"
                                     ? "success"
-                                    : t.status === "CANCELED"
+                                    : task.status === "CANCELED"
                                       ? "neutral"
                                       : "info"
                                 }
                               >
-                                {t.status}
+                                {t(taskStatusKey[task.status])}
                               </Badge>
-                              <span className="truncate">{t.title}</span>
+                              <span className="truncate">{task.title}</span>
                             </li>
                           ))}
                         </ul>
                       )}
                     </div>
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[color:var(--color-border)]">
-                      <Stat label="Open" value={selectedDay.tasks.openCount} />
-                      <Stat label="Done" value={selectedDay.tasks.doneCount} />
                       <Stat
-                        label="Canceled"
+                        label={t("calendar.statOpen")}
+                        value={selectedDay.tasks.openCount}
+                      />
+                      <Stat
+                        label={t("calendar.statDone")}
+                        value={selectedDay.tasks.doneCount}
+                      />
+                      <Stat
+                        label={t("calendar.statCanceled")}
                         value={selectedDay.tasks.canceledCount}
                       />
                     </div>
