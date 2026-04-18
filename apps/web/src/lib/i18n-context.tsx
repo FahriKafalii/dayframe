@@ -68,7 +68,12 @@ function detectInitial(): Locale {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => detectInitial());
+  const [locale, setLocaleState] = useState<Locale>("en");
+
+  useEffect(() => {
+    const detected = detectInitial();
+    setLocaleState(detected);
+  }, []);
 
   useEffect(() => {
     try {

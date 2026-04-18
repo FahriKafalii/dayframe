@@ -7,7 +7,7 @@ import { useT } from "@/lib/i18n-context";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { UserMenu } from "./user-menu";
-import { LoadingState } from "@/components/ui/empty-state";
+import { FullPageLoader } from "@/components/ui/empty-state";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 
@@ -22,16 +22,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [status, router]);
 
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingState label={t("common.loading")} />
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return null;
+  if (status === "loading" || status === "unauthenticated") {
+    return <FullPageLoader />;
   }
 
   return (

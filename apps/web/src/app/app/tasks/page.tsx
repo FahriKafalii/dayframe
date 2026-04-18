@@ -224,7 +224,11 @@ export default function TasksPage() {
 
       <Card>
         {error ? (
-          <ErrorState message={error} onRetry={load} />
+          <ErrorState
+            message={error}
+            onRetry={load}
+            retryLabel={t("common.tryAgain")}
+          />
         ) : !tasks ? (
           <LoadingState />
         ) : tasks.length === 0 ? (

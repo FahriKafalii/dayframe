@@ -23,7 +23,8 @@
     "newTask": "New task",
     "welcomeBack": "Welcome back",
     "signedOut": "Signed out",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "tryAgain": "Try again"
   },
   "theme": {
     "label": "Theme",
