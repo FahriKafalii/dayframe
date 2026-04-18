@@ -1,4 +1,5 @@
 import { taskRepository, journalRepository } from "@dayframe/repositories";
+import { AppError } from "@dayframe/lib";
 
 function toDateString(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -8,6 +9,12 @@ function subtractDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setUTCDate(d.getUTCDate() - days);
   return d;
+}
+
+function startOfUtcDay(d: Date): Date {
+  const c = new Date(d);
+  c.setUTCHours(0, 0, 0, 0);
+  return c;
 }
 
 export const statsService = {
@@ -41,5 +48,55 @@ export const statsService = {
       journalStreakEndingToday,
       lastJournalDate,
     };
+  },
+
+  async getActivity(userId: string, from: string, to: string) {
+    const fromDate = new Date(from + "T00:00:00Z");
+    const toDate = new Date(to + "T00:00:00Z");
+
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+      throw new AppError("VALIDATION", "Invalid date range");
+    }
+    if (fromDate > toDate) {
+      throw new AppError("VALIDATION", "`from` must be <= `to`");
+    }
+
+    const dayMs = 24 * 60 * 60 * 1000;
+    const totalDays = Math.floor((toDate.getTime() - fromDate.getTime()) / dayMs) + 1;
+    if (totalDays > 90) {
+      throw new AppError("VALIDATION", "Range cannot exceed 90 days");
+    }
+
+    const endExclusive = new Date(toDate.getTime() + dayMs);
+
+    const [createdRows, completedRows] = await Promise.all([
+      taskRepository.findCreatedBetween(userId, fromDate, endExclusive),
+      taskRepository.findCompletedBetween(userId, fromDate, endExclusive),
+    ]);
+
+    const buckets = new Map<string, { created: number; done: number }>();
+    for (let i = 0; i < totalDays; i++) {
+      const d = new Date(fromDate.getTime() + i * dayMs);
+      buckets.set(toDateString(d), { created: 0, done: 0 });
+    }
+
+    for (const row of createdRows) {
+      const key = toDateString(startOfUtcDay(row.created_at as Date));
+      const b = buckets.get(key);
+      if (b) b.created++;
+    }
+    for (const row of completedRows) {
+      const completedAt = row.completed_at as Date | null;
+      if (!completedAt) continue;
+      const key = toDateString(startOfUtcDay(completedAt));
+      const b = buckets.get(key);
+      if (b) b.done++;
+    }
+
+    return Array.from(buckets.entries()).map(([date, v]) => ({
+      date,
+      created: v.created,
+      done: v.done,
+    }));
   },
 };

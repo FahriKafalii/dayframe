@@ -68,4 +68,25 @@ export const taskRepository = {
       },
     });
   },
+
+  async findCreatedBetween(userId: string, from: Date, to: Date) {
+    return Task.findAll({
+      where: {
+        user_id: userId,
+        created_at: { [Op.gte]: from, [Op.lt]: to },
+      },
+      attributes: ["id", "created_at"],
+    });
+  },
+
+  async findCompletedBetween(userId: string, from: Date, to: Date) {
+    return Task.findAll({
+      where: {
+        user_id: userId,
+        status: "DONE",
+        completed_at: { [Op.gte]: from, [Op.lt]: to },
+      },
+      attributes: ["id", "completed_at"],
+    });
+  },
 };
