@@ -1,0 +1,36 @@
+{
+  "name": "@dayframe/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e ../../.env -- next dev -p 3000",
+    "build": "dotenv -e ../../.env -- next build",
+    "start": "dotenv -e ../../.env -- next start -p 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dayframe/db": "workspace:*",
+    "@dayframe/lib": "workspace:*",
+    "@dayframe/models": "workspace:*",
+    "@dayframe/repositories": "workspace:*",
+    "@dayframe/services": "workspace:*",
+    "@dayframe/types": "workspace:*",
+    "next": "15.3.9",
+    "pg": "^8.19.0",
+    "pg-hstore": "^2.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sequelize": "^6.37.7",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "dotenv-cli": "^7.4.4",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.9",
+    "typescript": "^5"
+  }
+}
