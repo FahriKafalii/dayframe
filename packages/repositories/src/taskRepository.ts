@@ -22,7 +22,9 @@ export const taskRepository = {
       const dateRange: Record<symbol, string> = {};
       if (filters.from) dateRange[Op.gte] = filters.from;
       if (filters.to) dateRange[Op.lte] = filters.to;
-      where.due_date = dateRange;
+      where[Op.and as unknown as string] = [
+        { [Op.or]: [{ due_date: dateRange }, { due_date: null }] },
+      ];
     }
 
     return Task.findAll({ where, order: [["created_at", "DESC"]] });
@@ -66,6 +68,7 @@ export const taskRepository = {
         status: "DONE",
         completed_at: { [Op.gte]: since },
       },
+      paranoid: false,
     });
   },
 
@@ -76,6 +79,7 @@ export const taskRepository = {
         created_at: { [Op.gte]: from, [Op.lt]: to },
       },
       attributes: ["id", "created_at"],
+      paranoid: false,
     });
   },
 
@@ -87,6 +91,7 @@ export const taskRepository = {
         completed_at: { [Op.gte]: from, [Op.lt]: to },
       },
       attributes: ["id", "completed_at"],
+      paranoid: false,
     });
   },
 };

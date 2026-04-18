@@ -10,9 +10,13 @@ export interface JournalEntryAttributes {
   notes: string | null;
   created_at: Date;
   updated_at: Date;
+  deleted_at: Date | null;
 }
 
-export type JournalEntryCreationAttributes = Omit<JournalEntryAttributes, "created_at" | "updated_at">;
+export type JournalEntryCreationAttributes = Omit<
+  JournalEntryAttributes,
+  "created_at" | "updated_at" | "deleted_at"
+>;
 
 export class JournalEntry
   extends Model<JournalEntryAttributes, JournalEntryCreationAttributes>
@@ -27,6 +31,7 @@ export class JournalEntry
   declare notes: string | null;
   declare created_at: Date;
   declare updated_at: Date;
+  declare deleted_at: Date | null;
 }
 
 export function initJournalEntry(sequelize: Sequelize): void {
@@ -77,6 +82,11 @@ export function initJournalEntry(sequelize: Sequelize): void {
         defaultValue: DataTypes.NOW,
         field: "updated_at",
       },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: "deleted_at",
+      },
     },
     {
       sequelize,
@@ -85,6 +95,8 @@ export function initJournalEntry(sequelize: Sequelize): void {
       underscored: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
+      paranoid: true,
+      deletedAt: "deleted_at",
     },
   );
 }

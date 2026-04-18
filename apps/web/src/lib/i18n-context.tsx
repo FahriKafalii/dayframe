@@ -68,21 +68,14 @@ function detectInitial(): Locale {
 }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
-  const [ready, setReady] = useState(false);
+  const [locale, setLocaleState] = useState<Locale>(() => detectInitial());
 
   useEffect(() => {
-    setLocaleState(detectInitial());
-    setReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!ready) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, locale);
     } catch {}
     document.documentElement.setAttribute("lang", locale);
-  }, [locale, ready]);
+  }, [locale]);
 
   const setLocale = useCallback((l: Locale) => setLocaleState(l), []);
 

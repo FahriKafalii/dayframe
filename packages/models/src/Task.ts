@@ -14,9 +14,13 @@ export interface TaskAttributes {
   completed_at: Date | null;
   created_at: Date;
   updated_at: Date;
+  deleted_at: Date | null;
 }
 
-export type TaskCreationAttributes = Omit<TaskAttributes, "created_at" | "updated_at">;
+export type TaskCreationAttributes = Omit<
+  TaskAttributes,
+  "created_at" | "updated_at" | "deleted_at"
+>;
 
 export class Task extends Model<TaskAttributes, TaskCreationAttributes> implements TaskAttributes {
   declare id: string;
@@ -29,6 +33,7 @@ export class Task extends Model<TaskAttributes, TaskCreationAttributes> implemen
   declare completed_at: Date | null;
   declare created_at: Date;
   declare updated_at: Date;
+  declare deleted_at: Date | null;
 }
 
 export function initTask(sequelize: Sequelize): void {
@@ -85,6 +90,11 @@ export function initTask(sequelize: Sequelize): void {
         defaultValue: DataTypes.NOW,
         field: "updated_at",
       },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: "deleted_at",
+      },
     },
     {
       sequelize,
@@ -93,6 +103,8 @@ export function initTask(sequelize: Sequelize): void {
       underscored: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
+      paranoid: true,
+      deletedAt: "deleted_at",
     },
   );
 }
