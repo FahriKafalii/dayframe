@@ -19,13 +19,11 @@
     "saving": "Kaydediliyor…",
     "signingIn": "Giriş yapılıyor…",
     "creating": "Oluşturuluyor…",
-    "tryAgain": "Tekrar dene",
     "open": "Açık",
     "newTask": "Yeni görev",
     "welcomeBack": "Tekrar hoş geldin",
     "signedOut": "Çıkış yapıldı",
-    "viewAll": "Tümünü gör",
-    "retry": "Tekrar dene"
+    "viewAll": "Tümünü gör"
   },
   "theme": {
     "label": "Tema",

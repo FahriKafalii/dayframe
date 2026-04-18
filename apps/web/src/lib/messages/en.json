@@ -19,13 +19,11 @@
     "saving": "Saving…",
     "signingIn": "Signing in…",
     "creating": "Creating…",
-    "tryAgain": "Try again",
     "open": "Open",
     "newTask": "New task",
     "welcomeBack": "Welcome back",
     "signedOut": "Signed out",
-    "viewAll": "View all",
-    "retry": "Try again"
+    "viewAll": "View all"
   },
   "theme": {
     "label": "Theme",
