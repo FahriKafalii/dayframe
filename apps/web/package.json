@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "dotenv -e ../../.env -- next dev -p 3001",
+    "dev": "dotenv -e ../../.env -- next dev -p 3000",
     "build": "dotenv -e ../../.env -- next build",
-    "start": "dotenv -e ../../.env -- next start -p 3001",
+    "start": "dotenv -e ../../.env -- next start -p 3000",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
@@ -17,6 +17,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^1.8.0",
     "next": "15.3.9",
+    "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.72.1",
