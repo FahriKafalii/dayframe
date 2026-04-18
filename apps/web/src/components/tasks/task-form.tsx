@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { TaskDto, TaskPriority } from "@dayframe/types";
@@ -9,22 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { FieldError, Label } from "@/components/ui/label";
-
-const schema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
-  notes: z.string().max(5000).optional(),
-  priority: z.enum(["LOW", "MED", "HIGH"]),
-  due_date: z.string().optional(),
-});
-
-export type TaskFormValues = z.infer<typeof schema>;
+import { useT } from "@/lib/i18n-context";
 
 export function TaskForm({
   initial,
   onSubmit,
   submitting,
-  submitLabel = "Save",
+  submitLabel,
   onCancel,
 }: {
   initial?: Partial<TaskDto>;
@@ -38,10 +31,26 @@ export function TaskForm({
   submitLabel?: string;
   onCancel?: () => void;
 }) {
+  const { t } = useT();
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        title: z.string().min(1, t("tasks.formTitleRequired")).max(200),
+        notes: z.string().max(5000).optional(),
+        priority: z.enum(["LOW", "MED", "HIGH"]),
+        due_date: z.string().optional(),
+      }),
+    [t],
+  );
+
+  type TaskFormValues = z.infer<typeof schema>;
+
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<TaskFormValues>({
     resolver: zodResolver(schema),
@@ -75,11 +84,11 @@ export function TaskForm({
     <form onSubmit={handleSubmit(handle)} className="space-y-4">
       <div>
         <Label htmlFor="title" required>
-          Title
+          {t("tasks.formTitle")}
         </Label>
         <Input
           id="title"
-          placeholder="What needs doing?"
+          placeholder={t("tasks.formTitlePlaceholder")}
           autoFocus
           invalid={!!errors.title}
           {...register("title")}
@@ -88,35 +97,45 @@ export function TaskForm({
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="priority">Priority</Label>
+          <Label htmlFor="priority">{t("tasks.formPriority")}</Label>
           <Select id="priority" {...register("priority")}>
-            <option value="LOW">Low</option>
-            <option value="MED">Medium</option>
-            <option value="HIGH">High</option>
+            <option value="LOW">{t("tasks.formPrioLow")}</option>
+            <option value="MED">{t("tasks.formPrioMed")}</option>
+            <option value="HIGH">{t("tasks.formPrioHigh")}</option>
           </Select>
         </div>
         <div>
-          <Label htmlFor="due_date">Due date</Label>
-          <Input id="due_date" type="date" {...register("due_date")} />
+          <Label htmlFor="due_date">{t("tasks.formDueDate")}</Label>
+          <Controller
+            name="due_date"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                id="due_date"
+                value={field.value ?? null}
+                onChange={(v) => field.onChange(v ?? "")}
+              />
+            )}
+          />
         </div>
       </div>
       <div>
-        <Label htmlFor="notes">Notes</Label>
+        <Label htmlFor="notes">{t("tasks.formNotes")}</Label>
         <Textarea
           id="notes"
           rows={4}
-          placeholder="Optional details, context, links…"
+          placeholder={t("tasks.formNotesPlaceholder")}
           {...register("notes")}
         />
       </div>
       <div className="flex items-center justify-end gap-2 pt-2">
         {onCancel && (
           <Button type="button" variant="secondary" onClick={onCancel}>
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Saving…" : submitLabel}
+          {submitting ? t("common.saving") : (submitLabel ?? t("common.save"))}
         </Button>
       </div>
     </form>
