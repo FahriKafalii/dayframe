@@ -226,3 +226,9 @@ html[data-theme="dark"] .glow-ambient::after {
   to { opacity: 1; }
 }
 .animate-fade-in { animation: fade-in 200ms ease both; }
+
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(200%); }
+  100% { transform: translateX(200%); }
+}

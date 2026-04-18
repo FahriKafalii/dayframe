@@ -57,6 +57,24 @@ export const taskRepository = {
     });
   },
 
+  async findByUserForCalendar(userId: string, from: string, to: string) {
+    const fromStart = new Date(from + "T00:00:00.000Z");
+    const toEnd = new Date(to + "T23:59:59.999Z");
+    return Task.findAll({
+      where: {
+        user_id: userId,
+        [Op.or]: [
+          { due_date: { [Op.gte]: from, [Op.lte]: to } },
+          {
+            due_date: null as unknown as string,
+            created_at: { [Op.gte]: fromStart, [Op.lte]: toEnd },
+          },
+        ],
+      },
+      order: [["due_date", "ASC"]],
+    });
+  },
+
   async countByStatus(userId: string, status: TaskStatus): Promise<number> {
     return Task.count({ where: { user_id: userId, status } });
   },

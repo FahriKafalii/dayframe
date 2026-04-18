@@ -192,6 +192,8 @@
     "statOpen": "Açık",
     "statDone": "Bitti",
     "statCanceled": "İptal",
+    "pickMonthTitle": "Aya atla",
+    "pickMonthDesc": "Ay ve yıl seç.",
     "mondayShort": "Pzt",
     "tuesdayShort": "Sal",
     "wednesdayShort": "Çar",

@@ -192,6 +192,8 @@
     "statOpen": "Open",
     "statDone": "Done",
     "statCanceled": "Canceled",
+    "pickMonthTitle": "Jump to month",
+    "pickMonthDesc": "Choose a month and year.",
     "mondayShort": "Mon",
     "tuesdayShort": "Tue",
     "wednesdayShort": "Wed",
