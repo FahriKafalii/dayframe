@@ -10,17 +10,19 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useT, type MessageKey } from "@/lib/i18n-context";
 
-const nav = [
-  { href: "/app", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/tasks", label: "Tasks", icon: ListChecks },
-  { href: "/app/journal", label: "Journal", icon: NotebookPen },
-  { href: "/app/calendar", label: "Calendar", icon: Calendar },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+const nav: { href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }[] = [
+  { href: "/app", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/app/tasks", labelKey: "nav.tasks", icon: ListChecks },
+  { href: "/app/journal", labelKey: "nav.journal", icon: NotebookPen },
+  { href: "/app/calendar", labelKey: "nav.calendar", icon: Calendar },
+  { href: "/app/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { t } = useT();
 
   return (
     <aside className="hidden lg:flex flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
@@ -30,7 +32,7 @@ export function Sidebar() {
             D
           </div>
           <span className="text-[15px] font-semibold tracking-tight">
-            Dayframe
+            {t("common.appName")}
           </span>
         </Link>
       </div>
@@ -54,7 +56,7 @@ export function Sidebar() {
                   )}
                 >
                   <Icon size={16} />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               </li>
             );
@@ -63,7 +65,7 @@ export function Sidebar() {
       </nav>
       <div className="p-4 border-t border-[color:var(--color-border)]">
         <p className="text-[11px] text-[color:var(--color-fg-subtle)] leading-relaxed">
-          A calm execution system for serious individual use.
+          {t("nav.tagline")}
         </p>
       </div>
     </aside>

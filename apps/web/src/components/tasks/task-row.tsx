@@ -5,6 +5,7 @@ import type { TaskDto, TaskPriority, TaskStatus } from "@dayframe/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { shortDate } from "@/lib/date";
+import { useT, type MessageKey } from "@/lib/i18n-context";
 
 const priorityTone: Record<TaskPriority, "neutral" | "info" | "danger"> = {
   LOW: "neutral",
@@ -12,10 +13,16 @@ const priorityTone: Record<TaskPriority, "neutral" | "info" | "danger"> = {
   HIGH: "danger",
 };
 
-const statusLabel: Record<TaskStatus, string> = {
-  OPEN: "Open",
-  DONE: "Done",
-  CANCELED: "Canceled",
+const priorityLabelKey: Record<TaskPriority, MessageKey> = {
+  LOW: "tasks.formPrioLow",
+  MED: "tasks.formPrioMed",
+  HIGH: "tasks.formPrioHigh",
+};
+
+const statusLabelKey: Record<TaskStatus, MessageKey> = {
+  OPEN: "tasks.statusOpen",
+  DONE: "tasks.statusDone",
+  CANCELED: "tasks.statusCanceled",
 };
 
 export function TaskRow({
@@ -31,6 +38,7 @@ export function TaskRow({
   onEdit?: (t: TaskDto) => void;
   onDelete?: (t: TaskDto) => void;
 }) {
+  const { t, locale } = useT();
   const done = task.status === "DONE";
   const canceled = task.status === "CANCELED";
 
@@ -42,7 +50,7 @@ export function TaskRow({
     >
       <button
         onClick={() => onToggleDone?.(task)}
-        aria-label={done ? "Reopen task" : "Mark task done"}
+        aria-label={done ? t("tasks.statusOpen") : t("tasks.statusDone")}
         className={cn(
           "h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
           done
@@ -73,7 +81,9 @@ export function TaskRow({
           >
             {task.title}
           </p>
-          <Badge tone={priorityTone[task.priority]}>{task.priority}</Badge>
+          <Badge tone={priorityTone[task.priority]}>
+            {t(priorityLabelKey[task.priority])}
+          </Badge>
         </div>
         {task.notes && (
           <p className="mt-0.5 text-xs text-[color:var(--color-fg-subtle)] truncate">
@@ -83,9 +93,9 @@ export function TaskRow({
       </div>
 
       <div className="hidden sm:flex items-center gap-2 text-xs text-[color:var(--color-fg-subtle)]">
-        {task.due_date && <span>{shortDate(task.due_date)}</span>}
+        {task.due_date && <span>{shortDate(task.due_date, locale)}</span>}
         <span className="text-[10px] uppercase tracking-wide">
-          {statusLabel[task.status]}
+          {t(statusLabelKey[task.status])}
         </span>
       </div>
 
@@ -93,24 +103,24 @@ export function TaskRow({
         {onEdit && (
           <button
             onClick={() => onEdit(task)}
-            className="text-xs h-7 px-2 rounded-md hover:bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)]"
+            className="text-xs h-7 px-2 rounded-md hover:bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)] transition-colors"
           >
-            Edit
+            {t("common.edit")}
           </button>
         )}
         {onCancel && task.status === "OPEN" && (
           <button
             onClick={() => onCancel(task)}
-            className="text-xs h-7 px-2 rounded-md hover:bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)]"
+            className="text-xs h-7 px-2 rounded-md hover:bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)] transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         )}
         {onDelete && (
           <button
             onClick={() => onDelete(task)}
-            className="h-7 w-7 rounded-md hover:bg-red-50 text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-danger)] inline-flex items-center justify-center"
-            aria-label="Delete"
+            className="h-7 w-7 rounded-md hover:bg-[color:var(--color-danger-soft)] text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-danger)] inline-flex items-center justify-center transition-colors"
+            aria-label={t("common.delete")}
           >
             <MoreHorizontal size={14} />
           </button>

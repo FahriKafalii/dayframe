@@ -6,9 +6,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { useT } from "@/lib/i18n-context";
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -29,7 +31,7 @@ export function UserMenu() {
 
   async function handleLogout() {
     await logout();
-    toast.success("Signed out");
+    toast.success(t("common.signedOut"));
     router.push("/login");
   }
 
@@ -37,43 +39,45 @@ export function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-md hover:bg-[color:var(--color-surface-2)]"
+        className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-md hover:bg-[color:var(--color-surface-2)] transition-colors"
       >
         <span className="h-7 w-7 rounded-full bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] flex items-center justify-center text-xs font-semibold">
           {initial}
         </span>
-        <span className="text-sm font-medium">{user.username}</span>
+        <span className="hidden sm:inline text-sm font-medium">
+          {user.username}
+        </span>
       </button>
       {open && (
-        <div className="absolute right-0 mt-1.5 w-52 bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-lg shadow-[var(--shadow-pop)] py-1 z-40">
+        <div className="absolute right-0 mt-1.5 w-52 bg-[color:var(--color-surface)] border border-[color:var(--color-border)] rounded-lg shadow-[var(--shadow-pop)] py-1 z-40 animate-fade-in">
           <div className="px-3 py-2 border-b border-[color:var(--color-border)]">
             <p className="text-xs text-[color:var(--color-fg-subtle)]">
-              Signed in as
+              {t("nav.signedInAs")}
             </p>
             <p className="text-sm font-medium truncate">{user.username}</p>
           </div>
           <Link
             href="/app/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)]"
+            className="flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)] transition-colors"
           >
             <UserIcon size={14} />
-            Profile
+            {t("nav.profile")}
           </Link>
           <Link
             href="/app/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)]"
+            className="flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)] transition-colors"
           >
             <Settings size={14} />
-            Settings
+            {t("nav.settings")}
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-danger)] hover:bg-red-50"
+            className="w-full flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger-soft)] transition-colors"
           >
             <LogOut size={14} />
-            Sign out
+            {t("common.signOut")}
           </button>
         </div>
       )}
