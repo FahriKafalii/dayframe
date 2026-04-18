@@ -13,24 +13,26 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useT, type MessageKey } from "@/lib/i18n-context";
 
-const nav = [
-  { href: "/app", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/tasks", label: "Tasks", icon: ListChecks },
-  { href: "/app/journal", label: "Journal", icon: NotebookPen },
-  { href: "/app/calendar", label: "Calendar", icon: Calendar },
-  { href: "/app/settings", label: "Settings", icon: Settings },
+const nav: { href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }[] = [
+  { href: "/app", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { href: "/app/tasks", labelKey: "nav.tasks", icon: ListChecks },
+  { href: "/app/journal", labelKey: "nav.journal", icon: NotebookPen },
+  { href: "/app/calendar", labelKey: "nav.calendar", icon: Calendar },
+  { href: "/app/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useT();
   return (
     <>
       <button
         className="lg:hidden h-9 w-9 rounded-md inline-flex items-center justify-center hover:bg-[color:var(--color-surface-2)]"
         onClick={() => setOpen(true)}
-        aria-label="Open navigation"
+        aria-label={t("nav.dashboard")}
       >
         <Menu size={18} />
       </button>
@@ -42,11 +44,13 @@ export function MobileNav() {
           />
           <div className="absolute left-0 top-0 bottom-0 w-64 bg-[color:var(--color-surface)] border-r border-[color:var(--color-border)] flex flex-col">
             <div className="flex items-center justify-between px-4 py-4 border-b border-[color:var(--color-border)]">
-              <span className="font-semibold tracking-tight">Dayframe</span>
+              <span className="font-semibold tracking-tight">
+                {t("common.appName")}
+              </span>
               <button
                 onClick={() => setOpen(false)}
                 className="h-8 w-8 rounded-md hover:bg-[color:var(--color-surface-2)] inline-flex items-center justify-center"
-                aria-label="Close"
+                aria-label={t("common.cancel")}
               >
                 <X size={16} />
               </button>
@@ -72,7 +76,7 @@ export function MobileNav() {
                         )}
                       >
                         <Icon size={16} />
-                        {item.label}
+                        {t(item.labelKey)}
                       </Link>
                     </li>
                   );
