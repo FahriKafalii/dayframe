@@ -1,116 +1,105 @@
 # Dayframe
 
-Personal productivity backend — tasks, journaling, and calendar aggregation.
+A calm personal operating system for focused individuals — tasks, journaling, and calendar visibility on a single surface.
+
+Self-hosted, TypeScript monorepo built with Next.js 15 and PostgreSQL.
+
+## Features
+
+- **Tasks** — priority, due dates, status filtering, soft delete
+- **Journal** — one entry per day with mood, wins, blockers, and notes
+- **Calendar** — monthly grid combining tasks and journal entries
+- **Dashboard** — streaks, open/completed counts, 7-day activity
+- **i18n** — English and Turkish
+- **Dark mode** — with no flash-of-unstyled-content
+- **Stateless auth** — HMAC-signed session cookies, no Redis
 
 ## Stack
 
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript
-- **Database:** PostgreSQL 16 (Docker)
-- **ORM:** Sequelize 6
-- **Migrations:** sequelize-cli
-- **Package manager:** pnpm (workspace)
-- **Runtime:** Node 22
+Next.js 15 · TypeScript 5 · React 19 · Tailwind CSS v4 · PostgreSQL 16 · Sequelize 6 · Zod · pnpm workspaces · Node 22
 
-## Monorepo Layout
+## Structure
 
 ```
-dayframe/
-├── apps/
-│   ├── api/      # Next.js API backend          (port 8000)
-│   ├── web/      # Public/user frontend         (port 3000)
-│   └── admin/    # Admin dashboard              (port 3001)
-└── packages/
-    ├── lib/          # env, errors, http, validation, auth cookie utils
-    ├── db/           # Sequelize singleton, migrations, sequelize-cli config
-    ├── models/       # Explicit Sequelize model definitions + associations
-    ├── repositories/ # Data access layer (user-scoped queries)
-    ├── services/     # Business logic
-    └── types/        # Shared API DTOs for web/admin consumers
+apps/
+  api/      # API route handlers (port 8000)
+  web/      # User frontend        (port 3000)
+  admin/    # Admin panel          (port 3001)
+packages/
+  lib/          # env, errors, validation, auth cookies
+  db/           # Sequelize singleton, migrations
+  models/       # Sequelize models
+  repositories/ # Data access layer
+  services/     # Business logic
+  types/        # Shared DTOs
 ```
 
-All database access flows through repositories. Route handlers are thin (validate + delegate to service).
-Session auth uses stateless HMAC-SHA256 signed cookies (no external session store).
+Route handlers validate input and delegate to services. All DB access goes through repositories.
 
-## Setup
+## Getting Started
+
+Requirements: Node 22+, pnpm 9+, Docker.
 
 ```bash
-# 1. Install workspace dependencies
+git clone https://github.com/FahriKafalii/dayframe.git
+cd dayframe
 pnpm install
 
-# 2. Start PostgreSQL
-docker compose up -d
-
-# 3. Copy env and configure
-cp .env.example .env
-# Edit .env — set DATABASE_URL, SESSION_SECRET, ALLOWED_ORIGINS
-
-# 4. Run migrations
-pnpm db:status   # verify connection / migration state
-pnpm db:migrate  # apply migrations
-
-# 5. Start dev servers
-pnpm dev:api     # http://localhost:8000
-pnpm dev:web     # http://localhost:3000
-pnpm dev:admin   # http://localhost:3001
-# or run all in parallel:
-pnpm dev
+docker compose up -d          # start PostgreSQL
+cp .env.example .env          # fill in values
+pnpm db:migrate               # apply migrations
+pnpm dev                      # run api + web + admin
 ```
 
-## Environment Variables
+Generate a session secret with `openssl rand -hex 64`.
 
-All apps load the single root `.env` via `dotenv-cli`.
+## Environment
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `SESSION_SECRET` | Yes | HMAC key for session cookies (64+ char hex recommended) |
-| `ALLOWED_ORIGINS` | Yes | Comma-separated origins allowed for CORS credentialed requests |
-| `NEXT_PUBLIC_API_BASE_URL` | Yes | Base URL of the API app (consumed by web/admin) |
-| `NODE_ENV` | No | `development` (default) or `production` |
-
-## Scripts (root)
-
-| Script | What it does |
+| Variable | Description |
 |---|---|
-| `pnpm dev` | Run api + web + admin in parallel |
-| `pnpm dev:api` | Run only the API app |
-| `pnpm dev:web` | Run only the web app |
-| `pnpm dev:admin` | Run only the admin app |
-| `pnpm build` | Build every workspace package |
-| `pnpm typecheck` | Type-check every workspace package |
-| `pnpm lint` | Lint every workspace app |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `SESSION_SECRET` | HMAC key for session cookies (64+ hex chars) |
+| `ALLOWED_ORIGINS` | Comma-separated origins for CORS |
+| `NEXT_PUBLIC_API_BASE_URL` | API base URL for web/admin |
+
+## Scripts
+
+| Script | Description |
+|---|---|
+| `pnpm dev` | Run all apps in parallel |
+| `pnpm dev:api` / `dev:web` / `dev:admin` | Run a single app |
+| `pnpm build` | Build all apps |
+| `pnpm typecheck` | Type-check all packages |
+| `pnpm lint` | Lint all apps |
 | `pnpm db:migrate` | Apply pending migrations |
-| `pnpm db:migrate:undo` | Undo last migration |
-| `pnpm db:migrate:undo:all` | Undo all migrations |
+| `pnpm db:migrate:undo` | Revert last migration |
 | `pnpm db:status` | Show migration state |
 
-## API Endpoints
+## API
 
-All endpoints are served by `apps/api` at `http://localhost:8000`.
+All endpoints are served at `http://localhost:8000`. Authenticated routes use the session cookie set on login/register.
 
-### Auth
-- `POST /api/auth/register` — create account
-- `POST /api/auth/login` — authenticate, sets session cookie
-- `POST /api/auth/logout` — clear session cookie
-- `GET /api/auth/me` — current user (requires auth)
+**Auth** · `POST /api/auth/register` · `POST /api/auth/login` · `POST /api/auth/logout` · `GET /api/auth/me`
 
-### Tasks (requires auth)
-- `POST /api/tasks` — create task
-- `GET /api/tasks?status=&from=&to=` — list tasks (filtered)
-- `GET /api/tasks/[id]` — get task
-- `PATCH /api/tasks/[id]` — update task
-- `DELETE /api/tasks/[id]` — delete task
+**Tasks** · `GET /api/tasks` · `POST /api/tasks` · `GET|PATCH|DELETE /api/tasks/[id]`
 
-### Journal (requires auth)
-- `PUT /api/journal/[YYYY-MM-DD]` — upsert journal entry
-- `GET /api/journal/[YYYY-MM-DD]` — get journal entry
+**Journal** · `GET|PUT /api/journal/[YYYY-MM-DD]`
 
-### Calendar (requires auth)
-- `GET /api/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD` — calendar day view
+**Calendar** · `GET /api/calendar?from=&to=`
 
-### Stats (requires auth)
-- `GET /api/stats/summary` — productivity summary
+**Stats** · `GET /api/stats/summary`
 
-### Health
-- `GET /api/health` — database health check
+**Health** · `GET /api/health`
+
+## Conventions
+
+- New entities use `deleted_at` + `paranoid: true`. Unique constraints use partial indexes (`WHERE deleted_at IS NULL`).
+- Historical queries (reports, charts) pass `paranoid: false` explicitly.
+- Translation strings are client-only to avoid hydration mismatches.
+- DTOs shared between server and client live in `@dayframe/types`.
+
+See [PROJECT_NOTES.md](PROJECT_NOTES.md) for architecture notes and [FINANCE_MODULE_PLAN.md](FINANCE_MODULE_PLAN.md) for the planned finance module.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
