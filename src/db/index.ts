@@ -4,11 +4,12 @@ import { registerModels } from "@/models";
 
 interface DbGlobal {
   sequelize?: Sequelize;
-  initialized?: boolean;
 }
 
 const globalForDb = globalThis as unknown as { __dayframe_db?: DbGlobal };
 const store: DbGlobal = (globalForDb.__dayframe_db ??= {});
+
+let modelsBoundTo: Sequelize | null = null;
 
 export function getSequelize(): Sequelize {
   if (!store.sequelize) {
@@ -22,10 +23,10 @@ export function getSequelize(): Sequelize {
 }
 
 export async function initDb(): Promise<void> {
-  if (store.initialized) return;
   const seq = getSequelize();
+  if (modelsBoundTo === seq) return;
   registerModels(seq);
-  store.initialized = true;
+  modelsBoundTo = seq;
 }
 
 export { Sequelize };
