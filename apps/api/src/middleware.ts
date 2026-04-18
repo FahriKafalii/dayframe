@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3001,http://localhost:3002")
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "http://localhost:3000,http://localhost:3001")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
