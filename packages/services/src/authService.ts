@@ -36,7 +36,7 @@ export const authService = {
   async me(userId: string) {
     const user = await userRepository.findById(userId);
     if (!user) {
-      throw new AppError("NOT_FOUND", "User not found");
+      throw new AppError("UNAUTHORIZED", "Session user no longer exists");
     }
     return { id: user.id, username: user.username };
   },

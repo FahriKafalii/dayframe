@@ -5,15 +5,22 @@ export interface UserAttributes {
   username: string;
   password_hash: string;
   created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
 }
 
-export type UserCreationAttributes = Omit<UserAttributes, "created_at">;
+export type UserCreationAttributes = Omit<
+  UserAttributes,
+  "created_at" | "updated_at" | "deleted_at"
+>;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   declare id: string;
   declare username: string;
   declare password_hash: string;
   declare created_at: Date;
+  declare updated_at: Date;
+  declare deleted_at: Date | null;
 }
 
 export function initUser(sequelize: Sequelize): void {
@@ -40,12 +47,27 @@ export function initUser(sequelize: Sequelize): void {
         defaultValue: DataTypes.NOW,
         field: "created_at",
       },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+        field: "updated_at",
+      },
+      deleted_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: "deleted_at",
+      },
     },
     {
       sequelize,
       tableName: "users",
-      timestamps: false,
+      timestamps: true,
       underscored: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      paranoid: true,
+      deletedAt: "deleted_at",
     },
   );
 }
