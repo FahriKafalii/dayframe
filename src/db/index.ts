@@ -1,10 +1,26 @@
-// TODO: Initialize singleton Sequelize instance here.
-//
-// This file will:
-// - Read DATABASE_URL from environment
-// - Create and export a single Sequelize instance
-// - Be the sole entry point for database access across the application
-//
-// Not implemented yet — infra scaffolding only.
+import { Sequelize } from "sequelize";
+import { env } from "@/lib/env";
+import { registerModels } from "@/models";
 
-export {};
+let instance: Sequelize | null = null;
+let initialized = false;
+
+export function getSequelize(): Sequelize {
+  if (!instance) {
+    instance = new Sequelize(env.DATABASE_URL, {
+      dialect: "postgres",
+      logging: false,
+      pool: { max: 10, min: 1, acquire: 30_000, idle: 10_000 },
+    });
+  }
+  return instance;
+}
+
+export async function initDb(): Promise<void> {
+  if (initialized) return;
+  const seq = getSequelize();
+  registerModels(seq);
+  initialized = true;
+}
+
+export { Sequelize };
