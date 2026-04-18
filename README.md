@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dayframe
 
-## Getting Started
+Personal productivity backend — tasks, journaling, and calendar aggregation.
 
-First, run the development server:
+## Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript
+- **Database:** PostgreSQL 16 (Docker)
+- **ORM:** Sequelize 6
+- **Migrations:** sequelize-cli
+- **Package manager:** pnpm
+- **Runtime:** Node 22
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Install dependencies
+pnpm install
+
+# 2. Start PostgreSQL
+docker compose up -d
+
+# 3. Copy env and configure
+cp .env.example .env
+# Edit .env — set DATABASE_URL and SESSION_SECRET
+
+# 4. Run migrations
+pnpm db:status   # verify connection
+pnpm db:migrate  # apply migrations
+
+# 5. Start dev server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `SESSION_SECRET` | Yes | HMAC key for session cookies (64+ char hex recommended) |
+| `NODE_ENV` | No | `development` (default) or `production` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Endpoints
 
-## Learn More
+### Auth
+- `POST /api/auth/register` — create account
+- `POST /api/auth/login` — authenticate, sets session cookie
+- `POST /api/auth/logout` — clear session cookie
+- `GET /api/auth/me` — current user (requires auth)
 
-To learn more about Next.js, take a look at the following resources:
+### Tasks (requires auth)
+- `POST /api/tasks` — create task
+- `GET /api/tasks?status=&from=&to=` — list tasks (filtered)
+- `GET /api/tasks/[id]` — get task
+- `PATCH /api/tasks/[id]` — update task
+- `DELETE /api/tasks/[id]` — delete task
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Journal (requires auth)
+- `PUT /api/journal/[YYYY-MM-DD]` — upsert journal entry
+- `GET /api/journal/[YYYY-MM-DD]` — get journal entry
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Calendar (requires auth)
+- `GET /api/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD` — calendar day view
 
-## Deploy on Vercel
+### Stats (requires auth)
+- `GET /api/stats/summary` — productivity summary
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Health
+- `GET /api/health` — database health check
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+```
+src/
+├── lib/          # env, errors, http, validation, auth utilities
+├── db/           # Sequelize singleton + health ping
+├── models/       # Explicit Sequelize model definitions (TS)
+├── repositories/ # Data access layer (user-scoped queries)
+├── services/     # Business logic
+└── app/api/      # Next.js route handlers (thin — validate + delegate)
+```
+
+All database access flows through repositories. Route handlers never touch the ORM directly.
+Session auth uses stateless HMAC-SHA256 signed cookies (no external session store).
