@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Modal } from "@/components/ui/modal";
 import { ErrorState, LoadingState } from "@/components/ui/empty-state";
 import { moodColor } from "@/components/journal/mood-picker";
 import { api, ApiError } from "@/lib/api";
@@ -49,6 +50,18 @@ export default function CalendarPage() {
   const [days, setDays] = useState<CalendarDayDto[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string>(todayIso());
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const goToToday = () => {
+    const now = new Date();
+    setAnchor(now);
+    setSelected(todayIso());
+  };
+
+  const jumpToMonth = (year: number, monthIdx: number) => {
+    setAnchor(new Date(year, monthIdx, 1));
+    setPickerOpen(false);
+  };
 
   const grid = useMemo(() => monthGridDays(anchor), [anchor]);
   const from = useMemo(() => toIso(grid[0]), [grid]);
@@ -85,10 +98,7 @@ export default function CalendarPage() {
         description={t("calendar.description")}
         actions={
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setAnchor(new Date())}
-            >
+            <Button variant="secondary" onClick={goToToday}>
               {t("common.today")}
             </Button>
             <div className="flex items-center gap-1 border border-[color:var(--color-border)] rounded-md p-0.5 bg-[color:var(--color-surface)]">
@@ -99,9 +109,14 @@ export default function CalendarPage() {
               >
                 <ChevronLeft size={16} />
               </button>
-              <span className="text-sm font-medium px-3 min-w-36 text-center">
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="text-sm font-medium px-3 min-w-36 text-center rounded-md hover:bg-[color:var(--color-surface-2)] transition-colors h-8"
+                aria-label={t("calendar.pickMonthTitle")}
+              >
                 {monthLabel(anchor, locale)}
-              </span>
+              </button>
               <button
                 onClick={() => setAnchor((d) => addMonths(d, 1))}
                 className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] transition-colors"
@@ -304,7 +319,124 @@ export default function CalendarPage() {
           </aside>
         </div>
       )}
+
+      <MonthPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        anchor={anchor}
+        onPick={jumpToMonth}
+        locale={locale}
+        title={t("calendar.pickMonthTitle")}
+        description={t("calendar.pickMonthDesc")}
+        todayLabel={t("common.today")}
+      />
     </div>
+  );
+}
+
+function MonthPickerModal({
+  open,
+  onClose,
+  anchor,
+  onPick,
+  locale,
+  title,
+  description,
+  todayLabel,
+}: {
+  open: boolean;
+  onClose: () => void;
+  anchor: Date;
+  onPick: (year: number, monthIdx: number) => void;
+  locale: "en" | "tr";
+  title: string;
+  description: string;
+  todayLabel: string;
+}) {
+  const today = new Date();
+  const [year, setYear] = useState(anchor.getFullYear());
+
+  useEffect(() => {
+    if (open) setYear(anchor.getFullYear());
+  }, [open, anchor]);
+
+  const months = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) =>
+        new Date(2000, i, 1).toLocaleString(
+          locale === "tr" ? "tr-TR" : "en-US",
+          { month: "short" },
+        ),
+      ),
+    [locale],
+  );
+
+  const currentY = today.getFullYear();
+  const currentM = today.getMonth();
+  const anchorY = anchor.getFullYear();
+  const anchorM = anchor.getMonth();
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      description={description}
+      maxWidth="max-w-md"
+      footer={
+        <button
+          type="button"
+          onClick={() => onPick(currentY, currentM)}
+          className="text-sm px-3 h-8 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] hover:bg-[color:var(--color-surface-2)] transition-colors"
+        >
+          {todayLabel}
+        </button>
+      }
+    >
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={() => setYear((y) => y - 1)}
+          className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+          aria-label="Previous year"
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <span className="text-base font-semibold tabular-nums">{year}</span>
+        <button
+          type="button"
+          onClick={() => setYear((y) => y + 1)}
+          className="h-8 w-8 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)]"
+          aria-label="Next year"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {months.map((label, idx) => {
+          const isSelected = year === anchorY && idx === anchorM;
+          const isCurrent = year === currentY && idx === currentM;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => onPick(year, idx)}
+              className={cn(
+                "h-11 rounded-md border text-sm font-medium capitalize transition-colors",
+                isSelected
+                  ? "bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] border-[color:var(--color-accent)]"
+                  : "bg-[color:var(--color-surface)] border-[color:var(--color-border)] hover:bg-[color:var(--color-surface-2)]",
+                !isSelected &&
+                  isCurrent &&
+                  "ring-1 ring-[color:var(--color-ring)]/40",
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+    </Modal>
   );
 }
 
