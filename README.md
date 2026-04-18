@@ -17,9 +17,9 @@ Personal productivity backend — tasks, journaling, and calendar aggregation.
 ```
 dayframe/
 ├── apps/
-│   ├── api/      # Next.js API backend          (port 3000)
-│   ├── web/      # Public/user frontend         (port 3001)
-│   └── admin/    # Admin dashboard              (port 3002)
+│   ├── api/      # Next.js API backend          (port 8000)
+│   ├── web/      # Public/user frontend         (port 3000)
+│   └── admin/    # Admin dashboard              (port 3001)
 └── packages/
     ├── lib/          # env, errors, http, validation, auth cookie utils
     ├── db/           # Sequelize singleton, migrations, sequelize-cli config
@@ -50,9 +50,9 @@ pnpm db:status   # verify connection / migration state
 pnpm db:migrate  # apply migrations
 
 # 5. Start dev servers
-pnpm dev:api     # http://localhost:3000
-pnpm dev:web     # http://localhost:3001
-pnpm dev:admin   # http://localhost:3002
+pnpm dev:api     # http://localhost:8000
+pnpm dev:web     # http://localhost:3000
+pnpm dev:admin   # http://localhost:3001
 # or run all in parallel:
 pnpm dev
 ```
@@ -87,7 +87,7 @@ All apps load the single root `.env` via `dotenv-cli`.
 
 ## API Endpoints
 
-All endpoints are served by `apps/api` at `http://localhost:3000`.
+All endpoints are served by `apps/api` at `http://localhost:8000`.
 
 ### Auth
 - `POST /api/auth/register` — create account
