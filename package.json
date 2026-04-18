@@ -2,35 +2,21 @@
   "name": "dayframe",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "db:migrate": "sequelize-cli db:migrate",
-    "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:migrate:undo:all": "sequelize-cli db:migrate:undo:all",
-    "db:status": "sequelize-cli db:migrate:status"
-  },
-  "dependencies": {
-    "next": "15.3.9",
-    "pg": "^8.19.0",
-    "pg-hstore": "^2.3.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "sequelize": "^6.37.7"
+    "dev": "pnpm -r --parallel --filter \"./apps/*\" run dev",
+    "dev:api": "pnpm --filter @dayframe/api dev",
+    "dev:web": "pnpm --filter @dayframe/web dev",
+    "dev:admin": "pnpm --filter @dayframe/admin dev",
+    "build": "pnpm -r --filter \"./apps/*\" run build",
+    "lint": "pnpm -r --filter \"./apps/*\" run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "db:migrate": "pnpm --filter @dayframe/db run db:migrate",
+    "db:migrate:undo": "pnpm --filter @dayframe/db run db:migrate:undo",
+    "db:migrate:undo:all": "pnpm --filter @dayframe/db run db:migrate:undo:all",
+    "db:status": "pnpm --filter @dayframe/db run db:status"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "dotenv": "^17.2.4",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.9",
-    "sequelize-cli": "^6.6.5",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }
