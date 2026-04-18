@@ -1,0 +1,21 @@
+{
+  "name": "@dayframe/services",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dayframe/lib": "workspace:*",
+    "@dayframe/models": "workspace:*",
+    "@dayframe/repositories": "workspace:*",
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

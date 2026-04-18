@@ -1,0 +1,19 @@
+{
+  "name": "@dayframe/repositories",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dayframe/db": "workspace:*",
+    "@dayframe/models": "workspace:*",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}
