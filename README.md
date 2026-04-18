@@ -98,8 +98,6 @@ All endpoints are served at `http://localhost:8000`. Authenticated routes use th
 - Translation strings are client-only to avoid hydration mismatches.
 - DTOs shared between server and client live in `@dayframe/types`.
 
-See [PROJECT_NOTES.md](PROJECT_NOTES.md) for architecture notes and [FINANCE_MODULE_PLAN.md](FINANCE_MODULE_PLAN.md) for the planned finance module.
-
 ## License
 
 MIT — see [LICENSE](LICENSE).
