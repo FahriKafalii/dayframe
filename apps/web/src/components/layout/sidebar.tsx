@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useT, type MessageKey } from "@/lib/i18n-context";
+import { Logo } from "@/components/ui/logo";
 
 const nav: { href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }[] = [
   { href: "/app", labelKey: "nav.dashboard", icon: LayoutDashboard },
@@ -28,9 +29,7 @@ export function Sidebar() {
     <aside className="hidden lg:flex flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-[color:var(--color-border)] bg-[color:var(--color-surface)]">
       <div className="px-5 py-5 border-b border-[color:var(--color-border)]">
         <Link href="/app" className="flex items-center gap-2 group">
-          <div className="h-7 w-7 rounded-lg bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] flex items-center justify-center text-sm font-semibold">
-            D
-          </div>
+          <Logo size={28} variant="filled" />
           <span className="text-[15px] font-semibold tracking-tight">
             {t("common.appName")}
           </span>
