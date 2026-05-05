@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { Logo } from "@/components/ui/logo";
 import { useT } from "@/lib/i18n-context";
 
 export function AuthCard({
@@ -24,9 +25,7 @@ export function AuthCard({
 
       <header className="relative z-10 h-16 flex items-center justify-between px-6 max-w-6xl mx-auto w-full">
         <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] flex items-center justify-center text-sm font-semibold">
-            D
-          </div>
+          <Logo size={28} variant="filled" />
           <span className="text-[15px] font-semibold tracking-tight">
             {t("common.appName")}
           </span>
