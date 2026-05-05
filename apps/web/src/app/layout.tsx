@@ -6,7 +6,7 @@ import { I18nProvider } from "@/lib/i18n-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dayframe — A calm execution system",
+  title: "Dayframe",
   description:
     "Plan tasks, journal your days, and see your progress on a single calm surface.",
 };

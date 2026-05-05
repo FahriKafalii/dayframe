@@ -6,7 +6,6 @@ import {
   CalendarRange,
   ListChecks,
   NotebookPen,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -22,13 +21,11 @@ export default function LandingPage() {
       <div className="absolute inset-0 grid-bg opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden="true" />
 
       <header className="relative z-10 h-16 flex items-center justify-between max-w-6xl mx-auto px-6">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-lg bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)] flex items-center justify-center text-sm font-semibold">
-            D
-          </div>
-          <span className="text-[15px] font-semibold tracking-tight">
-            {t("common.appName")}
-          </span>
+        <Link
+          href="/"
+          className="text-[15px] font-semibold tracking-tight"
+        >
+          {t("common.appName")}
         </Link>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
@@ -48,11 +45,7 @@ export default function LandingPage() {
 
       <section className="relative z-10 max-w-6xl mx-auto px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
         <div className="max-w-3xl animate-fade-up">
-          <div className="inline-flex items-center gap-2 text-xs font-medium text-[color:var(--color-fg-muted)] bg-[color:var(--color-surface)]/70 backdrop-blur-sm border border-[color:var(--color-border)] rounded-full px-3 py-1">
-            <Sparkles size={12} />
-            {t("landing.eyebrow")}
-          </div>
-          <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-[color:var(--color-fg)] leading-[1.05]">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight text-[color:var(--color-fg)] leading-[1.05]">
             {t("landing.headline1")}
             <br />
             {t("landing.headline2")}
