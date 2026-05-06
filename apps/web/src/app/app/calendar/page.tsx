@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   NotebookPen,
   PenLine,
 } from "lucide-react";
-import type { CalendarDayDto, TaskStatus } from "@dayframe/types";
+import type {
+  CalendarDayDto,
+  TaskStatus,
+  TransactionDto,
+} from "@dayframe/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +23,7 @@ import { ErrorState, LoadingState } from "@/components/ui/empty-state";
 import { moodColor } from "@/components/journal/mood-picker";
 import { api, ApiError } from "@/lib/api";
 import { useT, type MessageKey } from "@/lib/i18n-context";
+import { formatMoney } from "@/lib/money";
 import {
   addMonths,
   monthGridDays,
@@ -48,6 +54,8 @@ export default function CalendarPage() {
   const { t, locale } = useT();
   const [anchor, setAnchor] = useState<Date>(new Date());
   const [days, setDays] = useState<CalendarDayDto[] | null>(null);
+  const [kasaTxs, setKasaTxs] = useState<TransactionDto[] | null>(null);
+  const [kasaCurrency, setKasaCurrency] = useState<string>("TRY");
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string>(todayIso());
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -77,6 +85,18 @@ export default function CalendarPage() {
         err instanceof ApiError ? err.message : t("calendar.loadFailed"),
       );
     }
+    // Best-effort: pull kasa transactions for the visible range. Failure
+    // simply hides the activity subsection and must not break the calendar.
+    try {
+      const [txs, summary] = await Promise.all([
+        api.kasa.transactions.list({ from, to, limit: 500 }),
+        api.kasa.summary().catch(() => null),
+      ]);
+      setKasaTxs(txs);
+      if (summary?.base_currency) setKasaCurrency(summary.base_currency);
+    } catch {
+      setKasaTxs(null);
+    }
   }, [from, to, t]);
 
   useEffect(() => {
@@ -90,6 +110,27 @@ export default function CalendarPage() {
   }, [days]);
 
   const selectedDay = byDate.get(selected) ?? null;
+
+  const selectedKasa = useMemo(() => {
+    if (!kasaTxs) return null;
+    let count = 0;
+    let income = 0;
+    let expense = 0;
+    for (const tx of kasaTxs) {
+      if (tx.occurred_at.slice(0, 10) !== selected) continue;
+      count += 1;
+      const base = Number(tx.base_amount) || 0;
+      if (tx.type === "income" || tx.type === "transfer_in") {
+        income += base;
+      } else if (tx.type === "expense" || tx.type === "transfer_out") {
+        expense += base;
+      }
+    }
+    return { count, income, expense };
+  }, [kasaTxs, selected]);
+
+  const kasaHasAnyData =
+    Array.isArray(kasaTxs) && kasaTxs.length > 0;
 
   return (
     <div>
@@ -312,6 +353,57 @@ export default function CalendarPage() {
                         value={selectedDay.tasks.canceledCount}
                       />
                     </div>
+                    {kasaHasAnyData && selectedKasa && (
+                      <div className="pt-3 border-t border-[color:var(--color-border)]">
+                        <p className="text-xs uppercase tracking-wide text-[color:var(--color-fg-subtle)] mb-1.5">
+                          {t("calendar.kasaTitle")}
+                        </p>
+                        {selectedKasa.count === 0 ? (
+                          <p className="text-sm text-[color:var(--color-fg-subtle)]">
+                            {t("calendar.kasaNone")}
+                          </p>
+                        ) : (
+                          <Link
+                            href={`/app/kasa/transactions?from=${selected}&to=${selected}`}
+                            className="group flex items-center justify-between gap-2 -mx-1 px-2 py-1.5 rounded-md hover:bg-[color:var(--color-surface-2)] transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-xs text-[color:var(--color-fg-muted)]">
+                                {t("calendar.kasaCount", {
+                                  count: selectedKasa.count,
+                                })}
+                              </p>
+                              <p className="text-sm font-medium tabular-nums">
+                                <span className="text-[color:var(--color-success)]">
+                                  +
+                                  {formatMoney(
+                                    selectedKasa.income,
+                                    kasaCurrency,
+                                    locale,
+                                  )}
+                                </span>
+                                <span className="mx-1 text-[color:var(--color-fg-subtle)]">
+                                  /
+                                </span>
+                                <span className="text-[color:var(--color-danger)]">
+                                  -
+                                  {formatMoney(
+                                    selectedKasa.expense,
+                                    kasaCurrency,
+                                    locale,
+                                  )}
+                                </span>
+                              </p>
+                            </div>
+                            <ArrowRight
+                              size={14}
+                              className="text-[color:var(--color-fg-subtle)] group-hover:translate-x-0.5 transition-transform"
+                              aria-label={t("calendar.kasaViewDay")}
+                            />
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardBody>
