@@ -6,6 +6,7 @@ import {
   CalendarRange,
   ListChecks,
   NotebookPen,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -74,7 +75,7 @@ export default function LandingPage() {
       </section>
 
       <section className="relative z-10 max-w-6xl mx-auto px-6 pb-24">
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Feature
             icon={<ListChecks size={18} />}
             title={t("landing.feat1Title")}
@@ -89,6 +90,11 @@ export default function LandingPage() {
             icon={<CalendarRange size={18} />}
             title={t("landing.feat3Title")}
             body={t("landing.feat3Body")}
+          />
+          <Feature
+            icon={<Wallet size={18} />}
+            title={t("landing.feat4Title")}
+            body={t("landing.feat4Body")}
           />
         </div>
       </section>
