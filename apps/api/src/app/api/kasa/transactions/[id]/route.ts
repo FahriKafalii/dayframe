@@ -4,12 +4,20 @@ import { initDb } from "@dayframe/db";
 import { kasaSummaryService, transactionService } from "@dayframe/services";
 import { requireUserId, parseBody, json, errorResponse } from "@dayframe/lib";
 
+const POSITIVE_DECIMAL = /^(0|[1-9]\d*)(\.\d{1,4})?$/;
+const CURRENCY_CODE = /^[A-Z]{3,5}$/;
+
 const updateSchema = z.object({
   account_id: z.string().uuid().optional(),
   category_id: z.string().uuid().nullable().optional(),
   type: z.enum(["expense", "income", "adjustment"]).optional(),
-  amount: z.string().regex(/^\d+(\.\d{1,4})?$/).optional(),
-  currency: z.string().min(2).max(8).optional(),
+  amount: z.string().regex(POSITIVE_DECIMAL, "Tutar pozitif bir sayı olmalı").optional(),
+  currency: z
+    .string()
+    .trim()
+    .transform((s) => s.toUpperCase())
+    .pipe(z.string().regex(CURRENCY_CODE, "Geçersiz para birimi kodu (3-5 harf)"))
+    .optional(),
   occurred_at: z
     .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.string().datetime()])
     .optional(),
