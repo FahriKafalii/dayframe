@@ -4,14 +4,23 @@ import { initDb } from "@dayframe/db";
 import { accountService, accountToDto } from "@dayframe/services";
 import { requireUserId, parseBody, json, errorResponse } from "@dayframe/lib";
 
+const POSITIVE_DECIMAL = /^(0|[1-9]\d*)(\.\d{1,4})?$/;
+const SIGNED_DECIMAL = /^-?(0|[1-9]\d*)(\.\d{1,4})?$/;
+const CURRENCY_CODE = /^[A-Z]{3,5}$/;
+
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
-  currency: z.string().trim().min(2).max(8).optional(),
-  opening_balance: z.string().regex(/^-?\d+(\.\d+)?$/).optional(),
+  currency: z
+    .string()
+    .trim()
+    .transform((s) => s.toUpperCase())
+    .pipe(z.string().regex(CURRENCY_CODE, "Geçersiz para birimi kodu (3-5 harf)"))
+    .optional(),
+  opening_balance: z.string().regex(SIGNED_DECIMAL, "Açılış bakiyesi geçersiz").optional(),
   opening_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   color: z.string().max(20).optional(),
   icon: z.string().max(40).optional(),
-  credit_limit: z.string().regex(/^\d+(\.\d+)?$/).optional(),
+  credit_limit: z.string().regex(POSITIVE_DECIMAL, "Kredi limiti geçersiz").optional(),
   statement_day: z.number().int().min(1).max(31).optional(),
   due_day: z.number().int().min(1).max(31).optional(),
   bank_name: z.string().max(120).optional(),
