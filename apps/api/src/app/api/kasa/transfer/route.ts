@@ -4,11 +4,13 @@ import { initDb } from "@dayframe/db";
 import { transactionService } from "@dayframe/services";
 import { requireUserId, parseBody, json, errorResponse } from "@dayframe/lib";
 
+const POSITIVE_DECIMAL = /^(0|[1-9]\d*)(\.\d{1,4})?$/;
+
 const transferSchema = z.object({
   from_account_id: z.string().uuid(),
   to_account_id: z.string().uuid(),
-  amount: z.string().regex(/^\d+(\.\d{1,4})?$/),
-  to_amount: z.string().regex(/^\d+(\.\d{1,4})?$/).optional(),
+  amount: z.string().regex(POSITIVE_DECIMAL, "Tutar pozitif bir sayı olmalı"),
+  to_amount: z.string().regex(POSITIVE_DECIMAL, "Hedef tutar pozitif bir sayı olmalı").optional(),
   occurred_at: z.union([
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     z.string().datetime(),
