@@ -273,6 +273,9 @@ importers:
 
   packages/services:
     dependencies:
+      '@dayframe/db':
+        specifier: workspace:*
+        version: link:../db
       '@dayframe/lib':
         specifier: workspace:*
         version: link:../lib
@@ -282,9 +285,18 @@ importers:
       '@dayframe/repositories':
         specifier: workspace:*
         version: link:../repositories
+      '@dayframe/types':
+        specifier: workspace:*
+        version: link:../types
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
+      sequelize:
+        specifier: ^6.37.7
+        version: 6.37.8(pg-hstore@2.3.4)(pg@8.20.0)
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/bcryptjs':
         specifier: ^3.0.0
