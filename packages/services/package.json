@@ -8,10 +8,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@dayframe/db": "workspace:*",
     "@dayframe/lib": "workspace:*",
     "@dayframe/models": "workspace:*",
     "@dayframe/repositories": "workspace:*",
-    "bcryptjs": "^3.0.3"
+    "@dayframe/types": "workspace:*",
+    "bcryptjs": "^3.0.3",
+    "sequelize": "^6.37.7",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
