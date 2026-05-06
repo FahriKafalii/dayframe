@@ -49,6 +49,8 @@
     "feat2Body": "Günde bir giriş. Ruh hâli, kazanımlar, engeller, notlar. Sürdürebileceğin sakin bir ritüel.",
     "feat3Title": "Takvim görünürlüğü",
     "feat3Body": "Görevleri ve günlükleri birlikte dokuyan bir ay görünümü. Ritmin, görünür hâle gelir.",
+    "feat4Title": "Kasa",
+    "feat4Body": "Gelir ve gider, sakin bir ekranda.",
     "ctaTitle": "Planladığın haftayı gerçekten yaşa.",
     "ctaBody": "Kalabalık yok, oyunlaştırma yok. Yalnızca dikkatine saygı gösteren bir çalışma alanı.",
     "footer": "Disiplinli bir günlük işletim sistemi."
@@ -77,6 +79,7 @@
     "tasks": "Görevler",
     "journal": "Günlük",
     "calendar": "Takvim",
+    "kasa": "Kasa",
     "settings": "Ayarlar",
     "profile": "Profil",
     "signedInAs": "Giriş yapan",
@@ -111,10 +114,21 @@
     "quickWriteBody": "Ruh hâli, kazanım, engel.",
     "quickMonthLabel": "Ayı gör",
     "quickMonthBody": "Ritmini görselleştir.",
+    "quickKasaLabel": "Bir gider/gelir kaydet",
+    "quickKasaBody": "Para hareketlerini hızlıca yakala.",
     "dashboardLoadFail": "Panel yüklenemedi",
     "taskCreated": "Görev oluşturuldu",
     "createFailed": "Oluşturma başarısız",
-    "updateFailed": "Güncelleme başarısız"
+    "updateFailed": "Güncelleme başarısız",
+    "kasa": {
+      "sectionTitle": "Kasa",
+      "balance": "Toplam bakiye",
+      "expenseMtd": "Bu ay gider",
+      "incomeMtd": "Bu ay gelir",
+      "emptyTitle": "Kasa'yı kullanmaya başla",
+      "emptyBody": "İlk işlemini ekle ve para hareketlerini takip et.",
+      "emptyCta": "Kasa'yı aç"
+    }
   },
   "tasks": {
     "title": "Görevler",
@@ -176,7 +190,8 @@
     "moodLow": "Düşük",
     "moodOk": "Orta",
     "moodGood": "İyi",
-    "moodGreat": "Harika"
+    "moodGreat": "Harika",
+    "kasaLink": "Bugün ne harcadın?"
   },
   "calendar": {
     "title": "Takvim",
@@ -192,6 +207,10 @@
     "statOpen": "Açık",
     "statDone": "Bitti",
     "statCanceled": "İptal",
+    "kasaTitle": "Bu günkü hareketler",
+    "kasaCount": "{count} işlem",
+    "kasaNone": "Bu gün işlem yok.",
+    "kasaViewDay": "Günü Kasa'da gör",
     "pickMonthTitle": "Aya atla",
     "pickMonthDesc": "Ay ve yıl seç.",
     "mondayShort": "Pzt",
@@ -211,6 +230,145 @@
     "preferencesSub": "Yakında daha fazla ayar.",
     "preferencesBody": "Zaman dilimi, bildirimler ve veri dışa aktarımı burada olacak.",
     "sessionTitle": "Oturum",
-    "sessionSub": "Bu tarayıcıdan çıkış yap."
+    "sessionSub": "Bu tarayıcıdan çıkış yap.",
+    "kasa": {
+      "title": "Kasa",
+      "sub": "Para takibi tercihleri.",
+      "currencyLabel": "Temel para birimi",
+      "currencyValue": "TRY · Türk Lirası",
+      "exportLabel": "Verilerini dışa aktar",
+      "exportBtn": "Verileri dışa aktar",
+      "comingSoon": "Yakında"
+    }
+  },
+  "kasa": {
+    "title": "Kasa",
+    "description": "Gelir, gider ve hesaplarını sakin bir ekranda gör.",
+    "loadFailed": "Kasa yüklenemedi",
+    "kpiBalance": "Toplam bakiye",
+    "kpiIncomeMtd": "Bu ay gelir",
+    "kpiExpenseMtd": "Bu ay gider",
+    "kpiNetMtd": "Net",
+    "accounts": "Hesaplar",
+    "addAccount": "Hesap ekle",
+    "noAccounts": "Henüz hesap yok",
+    "noAccountsBody": "İlk hesabını ekleyerek kayda başla.",
+    "recent": "Son işlemler",
+    "viewAll": "Tümünü gör",
+    "noTxYet": "Henüz işlem yok",
+    "noTxYetBody": "İlk gelir veya giderini kaydet.",
+    "newTx": "Yeni işlem",
+    "newIncome": "Gelir",
+    "newExpense": "Gider",
+    "newTransfer": "Transfer",
+    "form": {
+      "type": "Tür",
+      "amount": "Tutar",
+      "account": "Hesap",
+      "category": "Kategori",
+      "date": "Tarih",
+      "payee": "Kim / Nereye",
+      "payeePlaceholder": "Migros, kira, müşteri…",
+      "note": "Not",
+      "notePlaceholder": "İsteğe bağlı ayrıntı…",
+      "save": "Kaydet",
+      "cancel": "İptal",
+      "amountRequired": "Tutar zorunlu",
+      "fromAccount": "Kaynak hesap",
+      "toAccount": "Hedef hesap",
+      "selectCategory": "Kategori seç",
+      "selectAccount": "Hesap seç"
+    },
+    "type": {
+      "expense": "Gider",
+      "income": "Gelir",
+      "transfer_out": "Transfer (çıkış)",
+      "transfer_in": "Transfer (giriş)",
+      "adjustment": "Düzeltme"
+    },
+    "account": {
+      "title": "Hesaplar",
+      "name": "Ad",
+      "kind": "Tip",
+      "currency": "Para birimi",
+      "openingBalance": "Açılış bakiyesi",
+      "create": "Hesap oluştur",
+      "delete": "Hesabı sil",
+      "deleteConfirm": "Hesabı silmek istediğinden emin misin?",
+      "kindLabel": {
+        "cash": "Nakit",
+        "checking": "Vadesiz",
+        "savings": "Vadeli",
+        "credit_card": "Kredi Kartı",
+        "debit_card": "Banka Kartı",
+        "prepaid": "Ön Ödemeli",
+        "wallet": "E-Cüzdan",
+        "investment": "Yatırım",
+        "loan": "Kredi",
+        "gold": "Altın",
+        "crypto": "Kripto"
+      }
+    },
+    "transfer": {
+      "title": "Transfer",
+      "subtitle": "Kendi hesapların arasında para hareketi.",
+      "amount": "Tutar",
+      "execute": "Transferi yap",
+      "sameAccount": "Kaynak ve hedef hesap aynı olamaz",
+      "noteOptional": "Not (opsiyonel)",
+      "needTwoAccounts": "Transfer için en az iki hesap gerekli."
+    },
+    "transactions": {
+      "title": "İşlemler",
+      "description": "Tüm gelir, gider ve transferlerin.",
+      "deleteConfirm": "İşlemi silmek istediğinden emin misin?",
+      "filterAll": "Hepsi",
+      "filterIncome": "Gelir",
+      "filterExpense": "Gider",
+      "filterTransfer": "Transfer",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "search": "Ara",
+      "loadFailed": "İşlemler yüklenemedi",
+      "empty": "İşlem yok",
+      "emptyBody": "Yeni bir gelir veya gider ekle.",
+      "editTitle": "İşlemi düzenle",
+      "editAria": "İşlemi düzenle"
+    },
+    "ui": {
+      "amountPlaceholder": "0,00",
+      "deleteTransaction": "İşlemi sil",
+      "transferLabel": "Transfer"
+    },
+    "notify": {
+      "txCreated": "İşlem kaydedildi",
+      "txDeleted": "İşlem silindi",
+      "txUpdated": "İşlem güncellendi",
+      "accountCreated": "Hesap eklendi",
+      "accountDeleted": "Hesap silindi",
+      "transferDone": "Transfer tamamlandı",
+      "saveFailed": "Kayıt başarısız",
+      "deleteFailed": "Silme başarısız"
+    }
+  },
+  "kasaAnalytics": {
+    "title": "Analiz",
+    "description": "Para hareketlerinin geçmişi ve geleceği — tek bir sakin görünümde.",
+    "rangeMonth": "Bu ay",
+    "rangeQuarter": "Son 3 ay",
+    "rangeYear": "Son 12 ay",
+    "incomeVsExpense": "Gelir ve gider",
+    "incomeVsExpenseHint": "Günlük net hareket — yeşil gelir, kırmızı gider.",
+    "categoryDist": "Kategori dağılımı",
+    "categoryDistHint": "Aynı dönemde en çok nereye gitti.",
+    "cumulative": "Birikimli net",
+    "cumulativeHint": "Seçilen aralıkta toplam net pozisyonun.",
+    "forecastTitle": "Sakin Tahmin · 90 gün",
+    "forecastHint": "Planlanan + tekrarlayan + son 30 günün eğilimi.",
+    "tabForecast": "Tahmin",
+    "monthEnd": "Ay sonu projeksiyonu",
+    "lowestPoint": "En düşük nokta",
+    "noData": "Bu dönem için yeterli veri yok.",
+    "loadFailed": "Analiz yüklenemedi"
   }
 }
