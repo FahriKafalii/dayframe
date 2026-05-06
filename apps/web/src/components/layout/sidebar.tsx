@@ -8,6 +8,7 @@ import {
   ListChecks,
   NotebookPen,
   Settings,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useT, type MessageKey } from "@/lib/i18n-context";
@@ -18,6 +19,7 @@ const nav: { href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }[
   { href: "/app/tasks", labelKey: "nav.tasks", icon: ListChecks },
   { href: "/app/journal", labelKey: "nav.journal", icon: NotebookPen },
   { href: "/app/calendar", labelKey: "nav.calendar", icon: Calendar },
+  { href: "/app/kasa", labelKey: "nav.kasa", icon: Wallet },
   { href: "/app/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
