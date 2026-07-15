@@ -31,3 +31,5 @@ export async function initDb(): Promise<void> {
 
 export { Sequelize };
 export { ping } from "./health";
+export { KASA_SEED_CATEGORIES, KASA_SEED_ACCOUNTS } from "./kasaSeed";
+export type { SeedCategory, SeedAccount } from "./kasaSeed";

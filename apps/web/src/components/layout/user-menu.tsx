@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -63,6 +63,14 @@ export function UserMenu() {
           >
             <UserIcon size={14} />
             {t("nav.profile")}
+          </Link>
+          <Link
+            href="/app/kasa"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-3 h-9 text-sm text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)] transition-colors"
+          >
+            <Wallet size={14} />
+            {t("nav.kasa")}
           </Link>
           <Link
             href="/app/settings"
