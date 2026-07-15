@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { Download, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,6 +64,43 @@ export default function SettingsPage() {
           <CardBody>
             <div className="text-sm text-[color:var(--color-fg-subtle)]">
               {t("settings.preferencesBody")}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>{t("settings.kasa.title")}</CardTitle>
+              <p className="text-sm text-[color:var(--color-fg-subtle)] mt-0.5">
+                {t("settings.kasa.sub")}
+              </p>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs text-[color:var(--color-fg-subtle)] mb-1">
+                  {t("settings.kasa.currencyLabel")}
+                </p>
+                <p className="text-sm font-medium">
+                  {t("settings.kasa.currencyValue")}
+                </p>
+              </div>
+              <div className="pt-2 border-t border-[color:var(--color-border)]">
+                <p className="text-xs text-[color:var(--color-fg-subtle)] mb-2">
+                  {t("settings.kasa.exportLabel")}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" disabled>
+                    <Download size={16} />
+                    {t("settings.kasa.exportBtn")}
+                  </Button>
+                  <span className="text-xs text-[color:var(--color-fg-subtle)]">
+                    {t("settings.kasa.comingSoon")}
+                  </span>
+                </div>
+              </div>
             </div>
           </CardBody>
         </Card>

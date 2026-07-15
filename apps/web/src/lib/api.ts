@@ -1,11 +1,21 @@
 import type {
+  AccountDto,
+  AccountKind,
   CalendarDayDto,
+  CategoryTreeNode,
+  CategoryType,
   JournalEntryDto,
+  KasaBreakdownItemDto,
+  KasaDailyPointDto,
+  KasaForecastDto,
+  KasaSummaryDto,
   StatsActivityDayDto,
   StatsSummaryDto,
   TaskDto,
   TaskPriority,
   TaskStatus,
+  TransactionDto,
+  TransactionStatus,
   UserDto,
 } from "@dayframe/types";
 
@@ -140,4 +150,161 @@ export const api = {
       ),
   },
   health: () => apiFetch<{ status: string; db: string }>("/api/health"),
+  kasa: {
+    summary: () => apiFetch<KasaSummaryDto>("/api/kasa/summary"),
+    accounts: {
+      list: () => apiFetch<AccountDto[]>("/api/kasa/accounts"),
+      get: (id: string) => apiFetch<AccountDto>(`/api/kasa/accounts/${id}`),
+      create: (body: {
+        name: string;
+        kind: AccountKind;
+        currency?: string;
+        opening_balance?: string;
+        color?: string;
+        icon?: string;
+        credit_limit?: string;
+        statement_day?: number;
+        due_day?: number;
+        bank_name?: string;
+        last4?: string;
+        notes?: string;
+      }) =>
+        apiFetch<AccountDto>("/api/kasa/accounts", {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (
+        id: string,
+        body: Partial<{
+          name: string;
+          currency: string;
+          opening_balance: string;
+          color: string;
+          icon: string;
+          credit_limit: string;
+          statement_day: number;
+          due_day: number;
+          bank_name: string;
+          last4: string;
+          notes: string;
+          is_archived: boolean;
+          sort_order: number;
+        }>,
+      ) =>
+        apiFetch<AccountDto>(`/api/kasa/accounts/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+      remove: (id: string) =>
+        apiFetch<void>(`/api/kasa/accounts/${id}`, { method: "DELETE" }),
+    },
+    categories: {
+      tree: (params?: { type?: CategoryType; locale?: "tr" | "en" }) => {
+        const qs = new URLSearchParams();
+        qs.set("shape", "tree");
+        if (params?.type) qs.set("type", params.type);
+        if (params?.locale) qs.set("locale", params.locale);
+        return apiFetch<CategoryTreeNode[]>(`/api/kasa/categories?${qs.toString()}`);
+      },
+    },
+    transactions: {
+      list: (filters?: {
+        account_id?: string;
+        category_id?: string;
+        type?: "expense" | "income" | "transfer_out" | "transfer_in" | "adjustment";
+        status?: TransactionStatus;
+        from?: string;
+        to?: string;
+        search?: string;
+        limit?: number;
+        offset?: number;
+      }) => {
+        const qs = new URLSearchParams();
+        Object.entries(filters ?? {}).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== "") qs.set(k, String(v));
+        });
+        const s = qs.toString();
+        return apiFetch<TransactionDto[]>(`/api/kasa/transactions${s ? `?${s}` : ""}`);
+      },
+      create: (body: {
+        account_id: string;
+        category_id?: string | null;
+        type: "expense" | "income" | "adjustment";
+        amount: string;
+        currency?: string;
+        occurred_at: string;
+        status?: TransactionStatus;
+        payee?: string;
+        note?: string;
+        location?: string;
+      }) =>
+        apiFetch<TransactionDto>("/api/kasa/transactions", {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (
+        id: string,
+        body: Partial<{
+          account_id: string;
+          category_id: string | null;
+          type: "expense" | "income" | "adjustment";
+          amount: string;
+          currency: string;
+          occurred_at: string;
+          status: TransactionStatus;
+          payee: string;
+          note: string;
+          location: string;
+        }>,
+      ) =>
+        apiFetch<TransactionDto>(`/api/kasa/transactions/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+      remove: (id: string) =>
+        apiFetch<void>(`/api/kasa/transactions/${id}`, { method: "DELETE" }),
+    },
+    transfer: (body: {
+      from_account_id: string;
+      to_account_id: string;
+      amount: string;
+      to_amount?: string;
+      occurred_at: string;
+      note?: string;
+    }) =>
+      apiFetch<{ groupId: string }>("/api/kasa/transfer", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    analytics: {
+      daily: (from: string, to: string) =>
+        apiFetch<KasaDailyPointDto[]>(
+          `/api/kasa/analytics/daily?from=${from}&to=${to}`,
+        ),
+      breakdown: (params: {
+        from: string;
+        to: string;
+        type?: "expense" | "income";
+        locale?: "tr" | "en";
+      }) => {
+        const qs = new URLSearchParams();
+        qs.set("from", params.from);
+        qs.set("to", params.to);
+        if (params.type) qs.set("type", params.type);
+        if (params.locale) qs.set("locale", params.locale);
+        return apiFetch<KasaBreakdownItemDto[]>(
+          `/api/kasa/analytics/breakdown?${qs.toString()}`,
+        );
+      },
+      forecast: (params?: { horizon?: number; lookback?: number }) => {
+        const qs = new URLSearchParams();
+        if (params?.horizon) qs.set("horizon", String(params.horizon));
+        if (params?.lookback) qs.set("lookback", String(params.lookback));
+        const s = qs.toString();
+        return apiFetch<KasaForecastDto>(
+          `/api/kasa/analytics/forecast${s ? `?${s}` : ""}`,
+        );
+      },
+    },
+  },
 };

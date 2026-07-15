@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import type { JournalEntryDto } from "@dayframe/types";
@@ -207,6 +208,15 @@ function JournalEditor() {
                   ? t("journal.updateEntry")
                   : t("journal.saveEntry")}
             </Button>
+          </div>
+
+          <div className="flex justify-end">
+            <Link
+              href={`/app/kasa?date=${date}`}
+              className="text-xs underline text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] transition-colors"
+            >
+              {t("journal.kasaLink")}
+            </Link>
           </div>
         </div>
       )}
