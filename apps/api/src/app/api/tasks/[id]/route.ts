@@ -15,6 +15,9 @@ const updateSchema = z.object({
   status: z.enum(["OPEN", "DONE", "CANCELED"]).optional(),
   priority: z.enum(["LOW", "MED", "HIGH"]).optional(),
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  remind_at: z.string().datetime({ offset: true }).nullable().optional(),
+  recurrence: z.enum(["daily", "weekly", "monthly"]).nullable().optional(),
+  tag_ids: z.array(z.string().uuid()).optional(),
 });
 
 type RouteContext = { params: Promise<{ id: string }> };
