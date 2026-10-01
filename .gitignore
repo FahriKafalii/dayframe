@@ -60,3 +60,9 @@ next-env.d.ts
 # local planning / internal notes (not pushed)
 PROJECT_NOTES.md
 KASA_MODULE_SPEC.md
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+design-out/
