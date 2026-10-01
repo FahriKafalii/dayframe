@@ -10,17 +10,9 @@ export interface FlatGroup {
   isLast: boolean;
 }
 
-/**
- * Turn a flat list of groups (each with parent_id) into a depth-first ordered
- * list annotated with nesting depth, so callers can render an indented tree.
- * Ordering within a parent follows the incoming order (already sorted by
- * position/created_at from the API). Orphaned nodes (missing parent) are
- * treated as roots so nothing silently disappears.
- *
- * Pass `collapsed` (a set of group ids whose subtrees are hidden) to skip the
- * descendants of collapsed groups. Collapsed groups themselves are still
- * emitted (with `hasChildren` true) so the caller can render an expand toggle.
- */
+// Flatten the parent_id tree into a depth-first list with nesting depth for
+// indented rendering. Orphans become roots. `collapsed` holds group ids whose
+// descendants are skipped (the collapsed node itself is still emitted).
 export function flattenGroups(
   groups: TaskGroupDto[],
   collapsed?: ReadonlySet<string>,

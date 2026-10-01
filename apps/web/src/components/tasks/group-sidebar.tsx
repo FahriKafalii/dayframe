@@ -26,12 +26,8 @@ export type GroupFilter = string;
 /** Indentation applied per nesting level, in pixels. */
 const INDENT = 18;
 
-/**
- * Left-hand group tree for the tasks page. Lets the user filter by group,
- * create groups/subgroups, expand/collapse subtrees, and delete groups.
- * Nesting (group-in-group) is modeled via parent_id and rendered as an
- * indented tree with connector guides so the hierarchy is visually obvious.
- */
+// Left-hand group tree: filter by group, create/delete groups and subgroups,
+// expand/collapse. Nesting (parent_id) is shown as an indented tree.
 export function GroupSidebar({
   groups,
   selected,
@@ -245,10 +241,8 @@ export function GroupSidebar({
   );
 }
 
-/**
- * Vertical connector lines that visually tie a nested group to its ancestors.
- * One line per ancestor level plus an elbow at the current depth.
- */
+// Vertical connector lines tying a nested group to its ancestors, plus an elbow
+// at the current depth.
 function TreeGuides({ depth, isLast }: { depth: number; isLast: boolean }) {
   return (
     <div
@@ -264,8 +258,7 @@ function TreeGuides({ depth, isLast }: { depth: number; isLast: boolean }) {
             className="absolute top-0 bottom-0 border-l border-[color:var(--color-border)]"
             style={{
               left: level * INDENT + INDENT / 2,
-              // The line to the current node stops at the elbow when it's the
-              // last child; ancestor lines run the full height.
+              // Last child stops at the elbow; ancestor lines run full height.
               height: last && isLast ? "50%" : "100%",
             }}
           />
