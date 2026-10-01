@@ -3,19 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowDownRight,
   ArrowRight,
-  ArrowUpRight,
   CalendarRange,
   CheckCircle2,
   Flame,
   ListChecks,
   NotebookPen,
   Plus,
-  Wallet,
 } from "lucide-react";
 import type {
-  KasaSummaryDto,
   StatsActivityDayDto,
   StatsSummaryDto,
   TaskDto,
@@ -28,11 +24,11 @@ import { EmptyState, LoadingState } from "@/components/ui/empty-state";
 import { TaskRow } from "@/components/tasks/task-row";
 import { Modal } from "@/components/ui/modal";
 import { TaskForm } from "@/components/tasks/task-form";
-import { api, ApiError } from "@/lib/api";
+import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/lib/i18n-context";
+import { errorMessage } from "@/lib/error-message";
 import { addDays, prettyDate, shortDate, subDays, todayIso, toIso } from "@/lib/date";
-import { formatMoney } from "@/lib/money";
 import { toast } from "sonner";
 import {
   Bar,
@@ -49,8 +45,6 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<StatsSummaryDto | null>(null);
   const [openTasks, setOpenTasks] = useState<TaskDto[] | null>(null);
   const [activity, setActivity] = useState<StatsActivityDayDto[] | null>(null);
-  const [kasa, setKasa] = useState<KasaSummaryDto | null>(null);
-  const [kasaLoaded, setKasaLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -71,18 +65,7 @@ export default function DashboardPage() {
       setOpenTasks(tasks);
       setActivity(act);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : t("dashboard.dashboardLoadFail");
-      setError(message);
-    }
-    // Load kasa summary independently — failures must not crash the dashboard.
-    try {
-      const k = await api.kasa.summary();
-      setKasa(k);
-    } catch {
-      setKasa(null);
-    } finally {
-      setKasaLoaded(true);
+      setError(errorMessage(err, t));
     }
   }, [from, to, t]);
 
@@ -97,9 +80,7 @@ export default function DashboardPage() {
       });
       void load();
     } catch (err) {
-      toast.error(
-        err instanceof ApiError ? err.message : t("dashboard.updateFailed"),
-      );
+      toast.error(errorMessage(err, t));
     }
   }
 
@@ -108,6 +89,10 @@ export default function DashboardPage() {
     notes: string | null;
     priority: "LOW" | "MED" | "HIGH";
     due_date: string | null;
+    remind_at: string | null;
+    recurrence: "daily" | "weekly" | "monthly" | null;
+    group_id: string | null;
+    tag_ids: string[];
   }) {
     setCreating(true);
     try {
@@ -116,9 +101,7 @@ export default function DashboardPage() {
       toast.success(t("dashboard.taskCreated"));
       void load();
     } catch (err) {
-      toast.error(
-        err instanceof ApiError ? err.message : t("dashboard.createFailed"),
-      );
+      toast.error(errorMessage(err, t));
     } finally {
       setCreating(false);
     }
@@ -142,12 +125,6 @@ export default function DashboardPage() {
   }, [t]);
 
   const topThree = openTasks?.slice(0, 5) ?? [];
-
-  const kasaIsEmpty =
-    kasa !== null &&
-    Number(kasa.totals.total_balance) === 0 &&
-    kasa.transaction_count === 0;
-  const kasaCcy = kasa?.base_currency ?? "TRY";
 
   return (
     <div>
@@ -212,63 +189,6 @@ export default function DashboardPage() {
           icon={<CalendarRange size={16} />}
         />
       </div>
-
-      {kasaLoaded && kasa && (
-        <div className="mt-6">
-          {kasaIsEmpty ? (
-            <Link
-              href="/app/kasa"
-              className="group flex items-center gap-4 bg-[color:var(--color-surface)] border border-dashed border-[color:var(--color-border)] rounded-xl p-5 shadow-[var(--shadow-card)] hover:border-[color:var(--color-border-strong)] transition-colors"
-            >
-              <div className="h-10 w-10 rounded-full bg-[color:var(--color-surface-2)] flex items-center justify-center text-[color:var(--color-fg-muted)] group-hover:bg-[color:var(--color-accent)] group-hover:text-[color:var(--color-accent-fg)] transition-colors">
-                <Wallet size={18} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold">
-                  {t("dashboard.kasa.emptyTitle")}
-                </p>
-                <p className="text-sm text-[color:var(--color-fg-subtle)]">
-                  {t("dashboard.kasa.emptyBody")}
-                </p>
-              </div>
-              <span className="text-xs text-[color:var(--color-fg-muted)] inline-flex items-center gap-1">
-                {t("dashboard.kasa.emptyCta")}
-                <ArrowRight size={12} />
-              </span>
-            </Link>
-          ) : (
-            <div className="grid sm:grid-cols-3 gap-4">
-              <StatCard
-                label={t("dashboard.kasa.balance")}
-                value={formatMoney(
-                  kasa.totals.total_balance,
-                  kasaCcy,
-                  locale,
-                )}
-                icon={<Wallet size={16} />}
-              />
-              <StatCard
-                label={t("dashboard.kasa.expenseMtd")}
-                value={
-                  <span className="text-[color:var(--color-danger)]">
-                    {formatMoney(kasa.totals.expense_mtd, kasaCcy, locale)}
-                  </span>
-                }
-                icon={<ArrowUpRight size={16} />}
-              />
-              <StatCard
-                label={t("dashboard.kasa.incomeMtd")}
-                value={
-                  <span className="text-[color:var(--color-success)]">
-                    {formatMoney(kasa.totals.income_mtd, kasaCcy, locale)}
-                  </span>
-                }
-                icon={<ArrowDownRight size={16} />}
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="grid lg:grid-cols-3 gap-4 mt-6">
         <Card className="lg:col-span-2">
@@ -379,7 +299,7 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <QuickAction
           href="/app/tasks"
           label={t("dashboard.quickPlanLabel")}
@@ -397,12 +317,6 @@ export default function DashboardPage() {
           label={t("dashboard.quickMonthLabel")}
           body={t("dashboard.quickMonthBody")}
           icon={<CalendarRange size={18} />}
-        />
-        <QuickAction
-          href="/app/kasa"
-          label={t("dashboard.quickKasaLabel")}
-          body={t("dashboard.quickKasaBody")}
-          icon={<Wallet size={18} />}
         />
       </div>
 

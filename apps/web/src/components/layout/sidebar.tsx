@@ -13,15 +13,24 @@ import {
 import { cn } from "@/lib/cn";
 import { useT, type MessageKey } from "@/lib/i18n-context";
 import { Logo } from "@/components/ui/logo";
+import { ACTIVE_MODULES, type ModuleKey } from "@/lib/modules";
 
-const nav: { href: string; labelKey: MessageKey; icon: typeof LayoutDashboard }[] = [
-  { href: "/app", labelKey: "nav.dashboard", icon: LayoutDashboard },
-  { href: "/app/tasks", labelKey: "nav.tasks", icon: ListChecks },
-  { href: "/app/journal", labelKey: "nav.journal", icon: NotebookPen },
-  { href: "/app/calendar", labelKey: "nav.calendar", icon: Calendar },
-  { href: "/app/kasa", labelKey: "nav.kasa", icon: Wallet },
-  { href: "/app/settings", labelKey: "nav.settings", icon: Settings },
+const allNav: {
+  key: ModuleKey;
+  href: string;
+  labelKey: MessageKey;
+  icon: typeof LayoutDashboard;
+}[] = [
+  { key: "dashboard", href: "/app", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { key: "tasks", href: "/app/tasks", labelKey: "nav.tasks", icon: ListChecks },
+  { key: "journal", href: "/app/journal", labelKey: "nav.journal", icon: NotebookPen },
+  { key: "calendar", href: "/app/calendar", labelKey: "nav.calendar", icon: Calendar },
+  { key: "kasa", href: "/app/kasa", labelKey: "nav.kasa", icon: Wallet },
+  { key: "settings", href: "/app/settings", labelKey: "nav.settings", icon: Settings },
 ];
+
+// Only show modules that are currently active (see lib/modules.ts).
+const nav = allNav.filter((item) => ACTIVE_MODULES.includes(item.key));
 
 export function Sidebar() {
   const pathname = usePathname();

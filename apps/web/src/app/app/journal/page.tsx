@@ -209,15 +209,6 @@ function JournalEditor() {
                   : t("journal.saveEntry")}
             </Button>
           </div>
-
-          <div className="flex justify-end">
-            <Link
-              href={`/app/kasa?date=${date}`}
-              className="text-xs underline text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)] transition-colors"
-            >
-              {t("journal.kasaLink")}
-            </Link>
-          </div>
         </div>
       )}
     </div>
