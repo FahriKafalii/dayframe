@@ -312,34 +312,7 @@ export default function TasksPage() {
         }
       />
 
-      <div className="mb-4 inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)]">
-        <button
-          onClick={() => setView("active")}
-          className={cn(
-            "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
-            !isTrash
-              ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
-              : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
-          )}
-        >
-          <ListChecks size={15} />
-          {t("tasks.viewActive")}
-        </button>
-        <button
-          onClick={() => setView("trash")}
-          className={cn(
-            "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
-            isTrash
-              ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
-              : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
-          )}
-        >
-          <Trash2 size={15} />
-          {t("tasks.viewTrash")}
-        </button>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-5">
+      <div className="mt-4 flex flex-col lg:flex-row gap-5">
         {!isTrash && (
           <aside className="lg:w-56 shrink-0">
             <GroupSidebar
@@ -363,8 +336,35 @@ export default function TasksPage() {
         )}
         <div className="flex-1 min-w-0">
 
-      {!isTrash && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
+          <button
+            onClick={() => setView("active")}
+            className={cn(
+              "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
+              !isTrash
+                ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
+                : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+            )}
+          >
+            <ListChecks size={15} />
+            {t("tasks.viewActive")}
+          </button>
+          <button
+            onClick={() => setView("trash")}
+            className={cn(
+              "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
+              isTrash
+                ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
+                : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+            )}
+          >
+            <Trash2 size={15} />
+            {t("tasks.viewTrash")}
+          </button>
+        </div>
+
+        {!isTrash && (
           <div className="w-36">
             <Select
               id="filter-status"
@@ -377,64 +377,68 @@ export default function TasksPage() {
               <option value="CANCELED">{t("tasks.filterCanceled")}</option>
             </Select>
           </div>
+        )}
 
-          <button
-            onClick={() => setShowFilters((v) => !v)}
-            className={cn(
-              "h-10 px-3 rounded-md border inline-flex items-center gap-2 text-sm transition-colors",
-              hasDateFilter || showFilters
-                ? "border-[color:var(--color-border-strong)] text-[color:var(--color-fg)]"
-                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
-            )}
-          >
-            <SlidersHorizontal size={15} />
-            {t("tasks.dateRange")}
-            {hasDateFilter && (
-              <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)]" />
-            )}
-          </button>
-
-          {hasActiveFilters && (
+        {!isTrash && (
+          <>
             <button
-              onClick={() => {
-                setStatus("ALL");
-                setFrom("");
-                setTo("");
-              }}
-              className="h-10 px-2 text-sm text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] transition-colors"
-            >
-              {t("tasks.resetFilters")}
-            </button>
-          )}
-
-          <div className="ml-auto inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
-            <button
-              onClick={() => setGroupBy("none")}
+              onClick={() => setShowFilters((v) => !v)}
               className={cn(
-                "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
-                groupBy === "none"
-                  ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
-                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+                "h-10 px-3 rounded-md border inline-flex items-center gap-2 text-sm transition-colors",
+                hasDateFilter || showFilters
+                  ? "border-[color:var(--color-border-strong)] text-[color:var(--color-fg)]"
+                  : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
               )}
             >
-              <List size={15} />
-              {t("tasks.groupByNone")}
-            </button>
-            <button
-              onClick={() => setGroupBy("date")}
-              className={cn(
-                "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
-                groupBy === "date"
-                  ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
-                  : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+              <SlidersHorizontal size={15} />
+              {t("tasks.dateRange")}
+              {hasDateFilter && (
+                <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)]" />
               )}
-            >
-              <CalendarRange size={15} />
-              {t("tasks.groupByDate")}
             </button>
-          </div>
-        </div>
-      )}
+
+            {hasActiveFilters && (
+              <button
+                onClick={() => {
+                  setStatus("ALL");
+                  setFrom("");
+                  setTo("");
+                }}
+                className="h-10 px-2 text-sm text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] transition-colors"
+              >
+                {t("tasks.resetFilters")}
+              </button>
+            )}
+
+            <div className="ml-auto inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
+              <button
+                onClick={() => setGroupBy("none")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
+                  groupBy === "none"
+                    ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
+                    : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+                )}
+              >
+                <List size={15} />
+                {t("tasks.groupByNone")}
+              </button>
+              <button
+                onClick={() => setGroupBy("date")}
+                className={cn(
+                  "inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm transition-colors",
+                  groupBy === "date"
+                    ? "bg-[color:var(--color-surface)] text-[color:var(--color-fg)] shadow-[var(--shadow-card)]"
+                    : "text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+                )}
+              >
+                <CalendarRange size={15} />
+                {t("tasks.groupByDate")}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       {!isTrash && showFilters && (
         <Card className="mb-3">
@@ -469,7 +473,10 @@ export default function TasksPage() {
         </p>
       )}
 
-      <Card>
+      {/* Fixed-height panel: the list scrolls internally so adding tasks never
+          grows the page, and the quick-add box stays docked at the bottom. */}
+      <div className="flex flex-col rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-surface)] overflow-hidden h-[calc(100vh-15rem)] min-h-80">
+        <div className="flex-1 overflow-y-auto">
         {error ? (
           <ErrorState
             message={error}
@@ -479,24 +486,20 @@ export default function TasksPage() {
         ) : !tasks ? (
           <LoadingState />
         ) : tasks.length === 0 ? (
-          <div className="p-6">
+          <div className="flex h-full items-center justify-center">
             {isTrash ? (
               <EmptyState
+                bare
                 icon={<Trash2 size={18} />}
                 title={t("tasks.trashEmptyTitle")}
                 description={t("tasks.trashEmptyBody")}
               />
             ) : (
               <EmptyState
+                bare
                 icon={<ListChecks size={18} />}
                 title={t("tasks.emptyTitle")}
                 description={t("tasks.emptyBody")}
-                action={
-                  <Button onClick={() => setShowCreate(true)}>
-                    <Plus size={16} />
-                    {t("common.newTask")}
-                  </Button>
-                }
               />
             )}
           </div>
@@ -563,23 +566,12 @@ export default function TasksPage() {
             ))}
           </div>
         )}
-      </Card>
-
-      {!isTrash && tasks && tasks.length > 0 && (
-        <div className="mt-2 px-1 text-xs text-[color:var(--color-fg-subtle)]">
-          {t("tasks.totalCounts", {
-            total: counts.total,
-            open: counts.open,
-            done: counts.done,
-            canceled: counts.canceled,
-          })}
         </div>
-      )}
 
       {!isTrash && (
         <form
           onSubmit={handleQuickAdd}
-          className="mt-3 flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 focus-within:border-[color:var(--color-border-strong)] transition-colors"
+          className="shrink-0 flex items-center gap-2 border-t border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 focus-within:bg-[color:var(--color-surface-2)]/40 transition-colors"
         >
           <Plus
             size={18}
@@ -597,6 +589,18 @@ export default function TasksPage() {
             </Button>
           )}
         </form>
+      )}
+      </div>
+
+      {!isTrash && tasks && tasks.length > 0 && (
+        <div className="mt-2 px-1 text-xs text-[color:var(--color-fg-subtle)]">
+          {t("tasks.totalCounts", {
+            total: counts.total,
+            open: counts.open,
+            done: counts.done,
+            canceled: counts.canceled,
+          })}
+        </div>
       )}
         </div>
       </div>

@@ -16,21 +16,30 @@ import { api } from "@/lib/api";
 import { flattenGroups } from "@/lib/task-groups";
 import { useT } from "@/lib/i18n-context";
 
-/** ISO string → value for <input type="datetime-local"> (local time, no seconds). */
-function isoToLocalInput(iso: string | null): string {
-  if (!iso) return "";
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// Half-hour reminder slots, 00:00 → 23:30.
+const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${pad(h)}:${m}`;
+});
+
+/** ISO string → { date: "YYYY-MM-DD", time: "HH:mm" } in local time. */
+function isoToParts(iso: string | null): { date: string; time: string } {
+  if (!iso) return { date: "", time: "" };
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}`;
+  if (Number.isNaN(d.getTime())) return { date: "", time: "" };
+  return {
+    date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+  };
 }
 
-/** datetime-local value (local time) → ISO string with timezone offset. */
-function localInputToIso(local: string): string {
-  // `new Date("YYYY-MM-DDTHH:mm")` is interpreted as local time.
-  return new Date(local).toISOString();
+/** Local date + time → ISO string. Defaults to 09:00 when only a date is given. */
+function partsToIso(date: string, time: string): string | null {
+  if (!date) return null;
+  return new Date(`${date}T${time || "09:00"}`).toISOString();
 }
 
 export function TaskForm({
@@ -61,10 +70,16 @@ export function TaskForm({
   );
   const [groupId, setGroupId] = useState<string>(initial?.group_id ?? "");
   const [groups, setGroups] = useState<TaskGroupDto[]>([]);
+  const initialRemind = isoToParts(initial?.remind_at ?? null);
+  const [remindDate, setRemindDate] = useState(initialRemind.date);
+  const [remindTime, setRemindTime] = useState(initialRemind.time);
 
   useEffect(() => {
     setTagIds(initial?.tags?.map((tag) => tag.id) ?? []);
     setGroupId(initial?.group_id ?? "");
+    const r = isoToParts(initial?.remind_at ?? null);
+    setRemindDate(r.date);
+    setRemindTime(r.time);
   }, [initial]);
 
   useEffect(() => {
@@ -91,7 +106,6 @@ export function TaskForm({
         notes: z.string().max(5000).optional(),
         priority: z.enum(["LOW", "MED", "HIGH"]),
         due_date: z.string().optional(),
-        remind_at: z.string().optional(),
         recurrence: z.enum(["none", "daily", "weekly", "monthly"]),
       }),
     [t],
@@ -112,7 +126,6 @@ export function TaskForm({
       notes: initial?.notes ?? "",
       priority: (initial?.priority as TaskPriority) ?? "MED",
       due_date: initial?.due_date ?? "",
-      remind_at: isoToLocalInput(initial?.remind_at ?? null),
       recurrence: initial?.recurrence ?? "none",
     },
   });
@@ -123,7 +136,7 @@ export function TaskForm({
       notes: initial?.notes ?? "",
       priority: (initial?.priority as TaskPriority) ?? "MED",
       due_date: initial?.due_date ?? "",
-      remind_at: isoToLocalInput(initial?.remind_at ?? null),
+      recurrence: initial?.recurrence ?? "none",
     });
   }, [initial, reset]);
 
@@ -133,7 +146,7 @@ export function TaskForm({
       notes: values.notes?.trim() ? values.notes.trim() : null,
       priority: values.priority,
       due_date: values.due_date ? values.due_date : null,
-      remind_at: values.remind_at ? localInputToIso(values.remind_at) : null,
+      remind_at: partsToIso(remindDate, remindTime),
       recurrence: values.recurrence === "none" ? null : values.recurrence,
       group_id: groupId || null,
       tag_ids: tagIds,
@@ -189,38 +202,51 @@ export function TaskForm({
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="remind_at">{t("tasks.formRemindAt")}</Label>
-          <Input
-            id="remind_at"
-            type="datetime-local"
-            {...register("remind_at")}
+      <div>
+        <Label htmlFor="remind_date">{t("tasks.formRemindAt")}</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <DatePicker
+            id="remind_date"
+            value={remindDate || null}
+            onChange={(v) => setRemindDate(v ?? "")}
           />
+          <Select
+            id="remind_time"
+            value={remindTime || ""}
+            onChange={(e) => setRemindTime(e.target.value)}
+            disabled={!remindDate}
+          >
+            <option value="">{t("tasks.formRemindTimeNone")}</option>
+            {TIME_SLOTS.map((slot) => (
+              <option key={slot} value={slot}>
+                {slot}
+              </option>
+            ))}
+          </Select>
         </div>
-        <div>
-          <Label htmlFor="recurrence">{t("tasks.formRecurrence")}</Label>
-          <Controller
-            name="recurrence"
-            control={control}
-            render={({ field }) => (
-              <Select
-                id="recurrence"
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-              >
-                <option value="none">{t("tasks.recurrenceNone")}</option>
-                <option value="daily">{t("tasks.recurrenceDaily")}</option>
-                <option value="weekly">{t("tasks.recurrenceWeekly")}</option>
-                <option value="monthly">{t("tasks.recurrenceMonthly")}</option>
-              </Select>
-            )}
-          />
-        </div>
+        <p className="mt-1.5 text-xs text-[color:var(--color-fg-subtle)]">
+          {t("tasks.formRemindAtHint")}
+        </p>
       </div>
-      <p className="-mt-2 text-xs text-[color:var(--color-fg-subtle)]">
-        {t("tasks.formRemindAtHint")}
-      </p>
+      <div>
+        <Label htmlFor="recurrence">{t("tasks.formRecurrence")}</Label>
+        <Controller
+          name="recurrence"
+          control={control}
+          render={({ field }) => (
+            <Select
+              id="recurrence"
+              value={field.value}
+              onChange={(e) => field.onChange(e.target.value)}
+            >
+              <option value="none">{t("tasks.recurrenceNone")}</option>
+              <option value="daily">{t("tasks.recurrenceDaily")}</option>
+              <option value="weekly">{t("tasks.recurrenceWeekly")}</option>
+              <option value="monthly">{t("tasks.recurrenceMonthly")}</option>
+            </Select>
+          )}
+        />
+      </div>
       {flatGroups.length > 0 && (
         <div>
           <Label htmlFor="group_id">{t("tasks.formGroup")}</Label>

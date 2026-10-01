@@ -6,17 +6,22 @@ export function EmptyState({
   description,
   action,
   className,
+  /** Drop the dashed card chrome — for use inside a container that already frames it. */
+  bare = false,
 }: {
   icon?: React.ReactNode;
   title: string;
   description?: string;
   action?: React.ReactNode;
   className?: string;
+  bare?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center py-14 px-6 border border-dashed border-[color:var(--color-border)] rounded-xl bg-[color:var(--color-surface)]",
+        "flex flex-col items-center justify-center text-center py-14 px-6",
+        !bare &&
+          "border border-dashed border-[color:var(--color-border)] rounded-xl bg-[color:var(--color-surface)]",
         className,
       )}
     >

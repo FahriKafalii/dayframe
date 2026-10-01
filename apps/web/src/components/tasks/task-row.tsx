@@ -76,7 +76,7 @@ export function TaskRow({
     <div className="border-b border-[color:var(--color-border)] last:border-b-0">
       <div
         className={cn(
-          "group flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--color-surface-2)]/60 transition-colors",
+          "group flex items-center gap-3 px-4 py-2.5 hover:bg-[color:var(--color-surface-2)]/60 transition-colors",
         )}
       >
         <button
@@ -104,7 +104,10 @@ export function TaskRow({
           ) : null}
         </button>
 
-        <div className="flex-1 min-w-0">
+        <div
+          className={cn("flex-1 min-w-0", !trash && onEdit && "cursor-pointer")}
+          onClick={!trash && onEdit ? () => onEdit(task) : undefined}
+        >
           <p
             className={cn(
               "text-sm truncate min-w-0",
@@ -211,7 +214,7 @@ export function TaskRow({
           </button>
         ) : (
         <div className="flex items-center gap-1">
-          <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 flex items-center gap-1 transition-opacity">
+          <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 hidden sm:flex items-center gap-1 transition-opacity">
             {onEdit && (
               <button
                 onClick={() => onEdit(task)}
@@ -246,7 +249,11 @@ export function TaskRow({
               aria-expanded={expanded}
               className={cn(
                 "h-7 w-7 rounded-md inline-flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface-2)] transition-colors",
-                hasSubtasks && "text-[color:var(--color-fg-muted)]",
+                // Only a persistent affordance when there are subtasks; otherwise
+                // reveal on hover so idle rows stay clean.
+                hasSubtasks || expanded
+                  ? "text-[color:var(--color-fg-muted)]"
+                  : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
               )}
             >
               <ChevronRight

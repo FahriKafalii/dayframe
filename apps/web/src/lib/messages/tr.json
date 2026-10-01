@@ -205,6 +205,7 @@
     "trashHint": "Silinen görevler burada güvende tutulur. İstediğini istediğin zaman geri getir.",
     "deletedAtLabel": "{date} tarihinde silindi",
     "formRemindAt": "Hatırlatma",
+    "formRemindTimeNone": "Saat seç",
     "formRemindAtHint": "İsteğe bağlı. Bu zaman geldiğinde görevi vurgularız.",
     "remindAtLabel": "Hatırlatma {datetime}",
     "formTags": "Etiketler",

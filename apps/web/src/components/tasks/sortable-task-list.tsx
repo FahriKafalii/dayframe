@@ -94,7 +94,7 @@ function SortableRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative flex items-stretch",
+        "group/row relative flex items-stretch",
         isDragging &&
           "z-10 shadow-[var(--shadow-pop)] bg-[color:var(--color-surface)] rounded-md",
       )}
@@ -103,7 +103,12 @@ function SortableRow({
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
-        className="shrink-0 px-1.5 flex items-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg-muted)] cursor-grab active:cursor-grabbing touch-none border-b border-[color:var(--color-border)] last:border-b-0"
+        className={cn(
+          "shrink-0 flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg-muted)] cursor-grab active:cursor-grabbing touch-none border-b border-[color:var(--color-border)] last:border-b-0 transition-opacity",
+          // Thin, hover-revealed handle on desktop; hidden on phones to give the
+          // title full width (reordering there is a niche gesture).
+          "hidden sm:flex w-5 opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100",
+        )}
       >
         <GripVertical size={15} />
       </button>
