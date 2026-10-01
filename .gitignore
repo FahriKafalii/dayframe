@@ -62,6 +62,10 @@ PROJECT_NOTES.md
 KASA_MODULE_SPEC.md
 TODO_MODULE_PLAN.md
 
+# local-only secrets (NEVER commit)
+*.local.md
+DB_CREDENTIALS.local.md
+
 # Playwright
 test-results/
 playwright-report/
