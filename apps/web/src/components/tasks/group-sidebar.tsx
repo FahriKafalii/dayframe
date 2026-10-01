@@ -185,12 +185,16 @@ export function GroupSidebar({
         </button>
       </div>
 
-      <GroupItem
-        icon={<Inbox size={15} />}
-        label={t("tasks.groupUngrouped")}
-        active={selected === "none"}
-        onClick={() => onSelect("none")}
-      />
+      {/* "Ungrouped" is only meaningful once groups exist; otherwise every task
+          is ungrouped and the filter is just noise. */}
+      {groups.length > 0 && (
+        <GroupItem
+          icon={<Inbox size={15} />}
+          label={t("tasks.groupUngrouped")}
+          active={selected === "none"}
+          onClick={() => onSelect("none")}
+        />
+      )}
 
       {addingParent === null && (
         <NewGroupInput

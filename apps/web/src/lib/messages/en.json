@@ -244,7 +244,8 @@
     "sectionLater": "Later",
     "sectionNoDate": "No date",
     "sectionDone": "Completed",
-    "filtersToggle": "Filters"
+    "filtersToggle": "Filters",
+    "dateRange": "Date range"
   },
   "journal": {
     "title": "Journal",

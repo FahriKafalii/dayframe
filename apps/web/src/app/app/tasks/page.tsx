@@ -63,7 +63,8 @@ export default function TasksPage() {
   const [quickAdding, setQuickAdding] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  const hasActiveFilters = status !== "ALL" || from !== "" || to !== "";
+  const hasDateFilter = from !== "" || to !== "";
+  const hasActiveFilters = status !== "ALL" || hasDateFilter;
 
   const isTrash = view === "trash";
   // Reordering persists absolute positions, so it must run against the full
@@ -363,8 +364,50 @@ export default function TasksPage() {
         <div className="flex-1 min-w-0">
 
       {!isTrash && (
-        <div className="mb-4 flex justify-end">
-          <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="w-36">
+            <Select
+              id="filter-status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as Filter)}
+            >
+              <option value="ALL">{t("tasks.filterAll")}</option>
+              <option value="OPEN">{t("tasks.filterOpen")}</option>
+              <option value="DONE">{t("tasks.filterDone")}</option>
+              <option value="CANCELED">{t("tasks.filterCanceled")}</option>
+            </Select>
+          </div>
+
+          <button
+            onClick={() => setShowFilters((v) => !v)}
+            className={cn(
+              "h-10 px-3 rounded-md border inline-flex items-center gap-2 text-sm transition-colors",
+              hasDateFilter || showFilters
+                ? "border-[color:var(--color-border-strong)] text-[color:var(--color-fg)]"
+                : "border-[color:var(--color-border)] text-[color:var(--color-fg-muted)] hover:text-[color:var(--color-fg)]",
+            )}
+          >
+            <SlidersHorizontal size={15} />
+            {t("tasks.dateRange")}
+            {hasDateFilter && (
+              <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)]" />
+            )}
+          </button>
+
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                setStatus("ALL");
+                setFrom("");
+                setTo("");
+              }}
+              className="h-10 px-2 text-sm text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] transition-colors"
+            >
+              {t("tasks.resetFilters")}
+            </button>
+          )}
+
+          <div className="ml-auto inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
             <button
               onClick={() => setGroupBy("none")}
               className={cn(
@@ -393,81 +436,35 @@ export default function TasksPage() {
         </div>
       )}
 
-      {!isTrash && groupBy === "none" && (
-      <>
-      <button
-        onClick={() => setShowFilters((v) => !v)}
-        className="sm:hidden mb-3 w-full h-10 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] inline-flex items-center justify-center gap-2 text-sm text-[color:var(--color-fg-muted)]"
-      >
-        <SlidersHorizontal size={15} />
-        {t("tasks.filtersToggle")}
-        {hasActiveFilters && (
-          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-accent)]" />
-        )}
-      </button>
-      <Card className={cn("mb-4", !showFilters && "hidden sm:block")}>
-        <CardBody>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div>
-              <Label htmlFor="filter-status">{t("tasks.status")}</Label>
-              <Select
-                id="filter-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as Filter)}
-              >
-                <option value="ALL">{t("tasks.filterAll")}</option>
-                <option value="OPEN">{t("tasks.filterOpen")}</option>
-                <option value="DONE">{t("tasks.filterDone")}</option>
-                <option value="CANCELED">{t("tasks.filterCanceled")}</option>
-              </Select>
+      {!isTrash && showFilters && (
+        <Card className="mb-3">
+          <CardBody>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="filter-from">{t("tasks.from")}</Label>
+                <DatePicker
+                  id="filter-from"
+                  value={from || null}
+                  onChange={(v) => setFrom(v ?? "")}
+                  maxDate={to || undefined}
+                />
+              </div>
+              <div>
+                <Label htmlFor="filter-to">{t("tasks.to")}</Label>
+                <DatePicker
+                  id="filter-to"
+                  value={to || null}
+                  onChange={(v) => setTo(v ?? "")}
+                  minDate={from || undefined}
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="filter-from">{t("tasks.from")}</Label>
-              <DatePicker
-                id="filter-from"
-                value={from || null}
-                onChange={(v) => setFrom(v ?? "")}
-                maxDate={to || undefined}
-              />
-            </div>
-            <div>
-              <Label htmlFor="filter-to">{t("tasks.to")}</Label>
-              <DatePicker
-                id="filter-to"
-                value={to || null}
-                onChange={(v) => setTo(v ?? "")}
-                minDate={from || undefined}
-              />
-            </div>
-            <div className="flex items-end">
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={() => {
-                  setStatus("ALL");
-                  setFrom("");
-                  setTo("");
-                }}
-              >
-                {t("tasks.resetFilters")}
-              </Button>
-            </div>
-          </div>
-          <div className="mt-3 text-xs text-[color:var(--color-fg-subtle)]">
-            {t("tasks.totalCounts", {
-              total: counts.total,
-              open: counts.open,
-              done: counts.done,
-              canceled: counts.canceled,
-            })}
-          </div>
-        </CardBody>
-      </Card>
-      </>
+          </CardBody>
+        </Card>
       )}
 
       {isTrash && (
-        <p className="mb-4 text-xs text-[color:var(--color-fg-subtle)]">
+        <p className="mb-3 text-xs text-[color:var(--color-fg-subtle)]">
           {t("tasks.trashHint")}
         </p>
       )}
@@ -567,6 +564,17 @@ export default function TasksPage() {
           </div>
         )}
       </Card>
+
+      {!isTrash && tasks && tasks.length > 0 && (
+        <div className="mt-2 px-1 text-xs text-[color:var(--color-fg-subtle)]">
+          {t("tasks.totalCounts", {
+            total: counts.total,
+            open: counts.open,
+            done: counts.done,
+            canceled: counts.canceled,
+          })}
+        </div>
+      )}
 
       {!isTrash && (
         <form
