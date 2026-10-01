@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   Repeat,
   RotateCcw,
+  Star,
   X as XIcon,
 } from "lucide-react";
 import type { TaskDto, TaskPriority, TaskStatus } from "@dayframe/types";
@@ -37,9 +38,21 @@ const statusLabelKey: Record<TaskStatus, MessageKey> = {
   CANCELED: "tasks.statusCanceled",
 };
 
+/** Row action callbacks, shared so wrappers can forward them without repeating
+ *  the prop list (see SortableTaskList). */
+export interface TaskRowHandlers {
+  onToggleDone?: (t: TaskDto) => void;
+  onToggleImportant?: (t: TaskDto) => void;
+  onCancel?: (t: TaskDto) => void;
+  onEdit?: (t: TaskDto) => void;
+  onDelete?: (t: TaskDto) => void;
+  onRestore?: (t: TaskDto) => void;
+}
+
 export function TaskRow({
   task,
   onToggleDone,
+  onToggleImportant,
   onCancel,
   onEdit,
   onDelete,
@@ -48,13 +61,8 @@ export function TaskRow({
   trash = false,
   /** When false, the subtask expander is hidden (e.g. compact dashboard list). */
   expandable = true,
-}: {
+}: TaskRowHandlers & {
   task: TaskDto;
-  onToggleDone?: (t: TaskDto) => void;
-  onCancel?: (t: TaskDto) => void;
-  onEdit?: (t: TaskDto) => void;
-  onDelete?: (t: TaskDto) => void;
-  onRestore?: (t: TaskDto) => void;
   trash?: boolean;
   expandable?: boolean;
 }) {
@@ -214,6 +222,26 @@ export function TaskRow({
             {t(statusLabelKey[task.status])}
           </span>
         </div>
+
+        {!trash && onToggleImportant && (
+          <button
+            onClick={() => onToggleImportant(task)}
+            aria-label={t("tasks.important")}
+            aria-pressed={task.is_important}
+            title={t("tasks.important")}
+            className={cn(
+              "h-7 w-7 rounded-md inline-flex items-center justify-center shrink-0 transition-colors",
+              task.is_important
+                ? "text-amber-500"
+                : "text-[color:var(--color-fg-subtle)] opacity-0 group-hover:opacity-100 hover:text-[color:var(--color-fg-muted)]",
+            )}
+          >
+            <Star
+              size={16}
+              fill={task.is_important ? "currentColor" : "none"}
+            />
+          </button>
+        )}
 
         {trash ? (
           <button

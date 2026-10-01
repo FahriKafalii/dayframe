@@ -30,6 +30,8 @@ import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n-context";
 import { errorMessage } from "@/lib/error-message";
 import { sectionizeByDate } from "@/lib/task-sections";
+import { buildSmartFilter, type SmartView } from "@/lib/task-views";
+import { todayIso } from "@/lib/date";
 import { cn } from "@/lib/cn";
 import { toast } from "sonner";
 
@@ -53,6 +55,9 @@ export default function TasksPage() {
   const [deleteTarget, setDeleteTarget] = useState<TaskDto | null>(null);
   const [groups, setGroups] = useState<TaskGroupDto[]>([]);
   const [groupFilter, setGroupFilter] = useState<GroupFilter>("all");
+  const [smartView, setSmartView] = useState<SmartView>("all");
+  const [search, setSearch] = useState("");
+  const [viewCounts, setViewCounts] = useState<Partial<Record<SmartView, number>>>({});
   const [groupBy, setGroupBy] = useState<"none" | "date">("none");
   const [quickTitle, setQuickTitle] = useState("");
   const [quickAdding, setQuickAdding] = useState(false);
@@ -79,6 +84,22 @@ export default function TasksPage() {
     }
   }, []);
 
+  // Smart-view badge counts, derived from one fetch of all active tasks.
+  const loadViewCounts = useCallback(async () => {
+    try {
+      const all = await api.tasks.list();
+      const today = todayIso();
+      setViewCounts({
+        all: all.length,
+        myday: all.filter((x) => x.due_date === today).length,
+        important: all.filter((x) => x.is_important).length,
+        planned: all.filter((x) => x.due_date).length,
+      });
+    } catch {
+      /* non-fatal */
+    }
+  }, []);
+
   useEffect(() => {
     void loadGroups();
   }, [loadGroups]);
@@ -91,25 +112,33 @@ export default function TasksPage() {
         setTasks(await api.tasks.list({ deleted: true }));
         return;
       }
-      const filters: {
-        status?: TaskStatus;
-        from?: string;
-        to?: string;
-        group_id?: string;
-      } = {};
+      const filters: Parameters<typeof api.tasks.list>[0] = {
+        ...buildSmartFilter(smartView, todayIso()),
+      };
       if (status !== "ALL") filters.status = status;
       if (from) filters.from = from;
       if (to) filters.to = to;
       if (groupFilter !== "all") filters.group_id = groupFilter;
+      if (search.trim()) filters.search = search.trim();
       setTasks(await api.tasks.list(filters));
     } catch (err) {
       setError(errorMessage(err, t));
     }
-  }, [view, status, from, to, groupFilter, t]);
+  }, [view, status, from, to, groupFilter, smartView, search, t]);
+
+  // Refresh the list and the sidebar counts together after a mutation.
+  const refresh = useCallback(() => {
+    load();
+    loadViewCounts();
+  }, [load, loadViewCounts]);
 
   useEffect(() => {
-    void load();
+    load();
   }, [load]);
+
+  useEffect(() => {
+    void loadViewCounts();
+  }, [loadViewCounts]);
 
   const counts = useMemo(() => {
     if (!tasks)
@@ -127,7 +156,7 @@ export default function TasksPage() {
       await api.tasks.update(task.id, {
         status: task.status === "DONE" ? "OPEN" : "DONE",
       });
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
     }
@@ -136,9 +165,25 @@ export default function TasksPage() {
   async function handleCancel(task: TaskDto) {
     try {
       await api.tasks.update(task.id, { status: "CANCELED" });
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
+    }
+  }
+
+  async function handleToggleImportant(task: TaskDto) {
+    const next = !task.is_important;
+    // Optimistic: flip the star locally before the request resolves.
+    setTasks((prev) =>
+      prev
+        ? prev.map((x) => (x.id === task.id ? { ...x, is_important: next } : x))
+        : prev,
+    );
+    try {
+      await api.tasks.update(task.id, { is_important: next });
+    } catch (err) {
+      toast.error(errorMessage(err, t));
+      refresh();
     }
   }
 
@@ -157,7 +202,7 @@ export default function TasksPage() {
       await api.tasks.create(values);
       setShowCreate(false);
       toast.success(t("tasks.created"));
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
     } finally {
@@ -181,7 +226,7 @@ export default function TasksPage() {
       await api.tasks.update(editing.id, values);
       setEditing(null);
       toast.success(t("tasks.updated"));
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
     } finally {
@@ -195,7 +240,7 @@ export default function TasksPage() {
       await api.tasks.remove(deleteTarget.id);
       toast.success(t("tasks.deleted"));
       setDeleteTarget(null);
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
     }
@@ -214,7 +259,7 @@ export default function TasksPage() {
       await api.tasks.reorder(orderedIds);
     } catch (err) {
       toast.error(errorMessage(err, t));
-      void load();
+      refresh();
     }
   }
 
@@ -229,7 +274,7 @@ export default function TasksPage() {
         groupFilter !== "all" && groupFilter !== "none" ? groupFilter : null;
       await api.tasks.create({ title, group_id });
       setQuickTitle("");
-      void load();
+      refresh();
     } catch (err) {
       toast.error(errorMessage(err, t));
     } finally {
@@ -245,9 +290,19 @@ export default function TasksPage() {
       toast.success(t("tasks.restored"));
     } catch (err) {
       toast.error(errorMessage(err, t));
-      void load();
+      refresh();
     }
   }
+
+  // Shared row actions, spread into every TaskRow / SortableTaskList so adding
+  // a handler is a one-line change rather than touching each call site.
+  const rowHandlers = {
+    onToggleDone: handleToggleDone,
+    onToggleImportant: handleToggleImportant,
+    onCancel: handleCancel,
+    onEdit: setEditing,
+    onDelete: setDeleteTarget,
+  };
 
   return (
     <div>
@@ -298,8 +353,19 @@ export default function TasksPage() {
             <GroupSidebar
               groups={groups}
               selected={groupFilter}
-              onSelect={setGroupFilter}
+              onSelect={(g) => {
+                setGroupFilter(g);
+                setSmartView("all");
+              }}
               onGroupsChanged={loadGroups}
+              smartView={smartView}
+              onSmartView={(v) => {
+                setSmartView(v);
+                setGroupFilter("all");
+              }}
+              search={search}
+              onSearch={setSearch}
+              counts={viewCounts}
             />
           </aside>
         )}
@@ -477,10 +543,7 @@ export default function TasksPage() {
           <SortableTaskList
             tasks={tasks}
             onReorder={handleReorder}
-            onToggleDone={handleToggleDone}
-            onCancel={handleCancel}
-            onEdit={setEditing}
-            onDelete={setDeleteTarget}
+            {...rowHandlers}
           />
         ) : groupBy === "date" ? (
           <div>

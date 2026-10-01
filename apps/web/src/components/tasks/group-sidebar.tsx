@@ -2,20 +2,26 @@
 
 import { useState } from "react";
 import {
+  CalendarRange,
   ChevronDown,
   ChevronRight,
   Folder,
   FolderOpen,
   FolderPlus,
   Inbox,
-  Layers,
+  Infinity as InfinityIcon,
   Plus,
+  Search,
+  Star,
+  Sun,
   Trash2,
+  type LucideIcon,
 } from "lucide-react";
 import type { TaskGroupDto } from "@dayframe/types";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/error-message";
 import { flattenGroups } from "@/lib/task-groups";
+import { SMART_VIEWS, type SmartView } from "@/lib/task-views";
 import { useT } from "@/lib/i18n-context";
 import { cn } from "@/lib/cn";
 import { toast } from "sonner";
@@ -26,6 +32,13 @@ export type GroupFilter = string;
 /** Indentation applied per nesting level, in pixels. */
 const INDENT = 18;
 
+const SMART_VIEW_ICONS: Record<string, LucideIcon> = {
+  sun: Sun,
+  star: Star,
+  calendar: CalendarRange,
+  infinity: InfinityIcon,
+};
+
 // Left-hand group tree: filter by group, create/delete groups and subgroups,
 // expand/collapse. Nesting (parent_id) is shown as an indented tree.
 export function GroupSidebar({
@@ -33,11 +46,22 @@ export function GroupSidebar({
   selected,
   onSelect,
   onGroupsChanged,
+  smartView,
+  onSmartView,
+  search,
+  onSearch,
+  counts,
 }: {
   groups: TaskGroupDto[];
   selected: GroupFilter;
   onSelect: (value: GroupFilter) => void;
   onGroupsChanged: () => void;
+  smartView: SmartView;
+  onSmartView: (view: SmartView) => void;
+  search: string;
+  onSearch: (value: string) => void;
+  /** Per-smart-view task counts, shown as badges. */
+  counts?: Partial<Record<SmartView, number>>;
 }) {
   const { t } = useT();
   const [addingParent, setAddingParent] = useState<string | null | undefined>(
@@ -94,6 +118,39 @@ export function GroupSidebar({
 
   return (
     <div className="space-y-1">
+      {/* Search */}
+      <div className="relative mb-2">
+        <Search
+          size={14}
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[color:var(--color-fg-subtle)] pointer-events-none"
+        />
+        <input
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+          placeholder={t("tasks.searchPlaceholder")}
+          className="w-full h-9 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pl-8 pr-3 text-sm outline-none focus:border-[color:var(--color-border-strong)] transition-colors"
+        />
+      </div>
+
+      {/* Smart views (My Day / Important / Planned / All) */}
+      <div className="space-y-0.5 mb-2">
+        {SMART_VIEWS.map((v) => {
+          const Icon = SMART_VIEW_ICONS[v.icon];
+          return (
+            <GroupItem
+              key={v.key}
+              icon={<Icon size={15} />}
+              label={t(v.labelKey)}
+              active={selected === "all" && smartView === v.key}
+              onClick={() => onSmartView(v.key)}
+              count={counts?.[v.key]}
+            />
+          );
+        })}
+      </div>
+
+      <div className="h-px bg-[color:var(--color-border)] my-2" />
+
       <div className="flex items-center justify-between px-1 mb-1">
         <span className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-fg-subtle)]">
           {t("tasks.groups")}
@@ -110,12 +167,6 @@ export function GroupSidebar({
         </button>
       </div>
 
-      <GroupItem
-        icon={<Layers size={15} />}
-        label={t("tasks.groupAll")}
-        active={selected === "all"}
-        onClick={() => onSelect("all")}
-      />
       <GroupItem
         icon={<Inbox size={15} />}
         label={t("tasks.groupUngrouped")}
@@ -282,11 +333,13 @@ function GroupItem({
   label,
   active,
   onClick,
+  count,
 }: {
   icon: React.ReactNode;
   label: string;
   active: boolean;
   onClick: () => void;
+  count?: number;
 }) {
   return (
     <button
@@ -299,7 +352,12 @@ function GroupItem({
       )}
     >
       {icon}
-      <span className="truncate">{label}</span>
+      <span className="truncate flex-1 text-left">{label}</span>
+      {count !== undefined && count > 0 && (
+        <span className="text-xs text-[color:var(--color-fg-subtle)] tabular-nums">
+          {count}
+        </span>
+      )}
     </button>
   );
 }

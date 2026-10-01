@@ -21,6 +21,7 @@ export interface CreateTaskInput {
   remind_at?: string | null;
   recurrence?: TaskRecurrence | null;
   group_id?: string | null;
+  is_important?: boolean;
   tag_ids?: string[];
 }
 
@@ -33,6 +34,7 @@ export interface UpdateTaskInput {
   remind_at?: string | null;
   recurrence?: TaskRecurrence | null;
   group_id?: string | null;
+  is_important?: boolean;
   tag_ids?: string[];
 }
 
@@ -89,6 +91,7 @@ export const taskService = {
       remind_at: input.remind_at ? new Date(input.remind_at) : null,
       recurrence: input.recurrence ?? null,
       group_id: input.group_id ?? null,
+      is_important: input.is_important ?? false,
       completed_at: null,
     });
     if (input.tag_ids !== undefined) {
@@ -223,6 +226,7 @@ export const taskService = {
           : null,
         recurrence: rule,
         group_id: existing.group_id,
+        is_important: existing.is_important,
         completed_at: null,
       });
       // Carry the tags over to the next occurrence.

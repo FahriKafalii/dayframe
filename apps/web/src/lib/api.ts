@@ -112,6 +112,10 @@ export const api = {
       to?: string;
       tag_id?: string;
       group_id?: string;
+      important?: boolean;
+      search?: string;
+      due?: "today" | "planned" | "overdue";
+      today?: string;
       deleted?: boolean;
     }) => {
       const params = new URLSearchParams();
@@ -120,6 +124,10 @@ export const api = {
       if (filters?.to) params.set("to", filters.to);
       if (filters?.tag_id) params.set("tag_id", filters.tag_id);
       if (filters?.group_id) params.set("group_id", filters.group_id);
+      if (filters?.important) params.set("important", "true");
+      if (filters?.search) params.set("search", filters.search);
+      if (filters?.due) params.set("due", filters.due);
+      if (filters?.today) params.set("today", filters.today);
       if (filters?.deleted) params.set("deleted", "true");
       const qs = params.toString();
       return apiFetch<TaskDto[]>(`/api/tasks${qs ? `?${qs}` : ""}`);
@@ -140,6 +148,7 @@ export const api = {
       remind_at?: string | null;
       recurrence?: TaskRecurrence | null;
       group_id?: string | null;
+      is_important?: boolean;
       tag_ids?: string[];
     }) =>
       apiFetch<TaskDto>("/api/tasks", {
@@ -157,6 +166,7 @@ export const api = {
         remind_at: string | null;
         recurrence: TaskRecurrence | null;
         group_id: string | null;
+        is_important: boolean;
         tag_ids: string[];
       }>,
     ) =>

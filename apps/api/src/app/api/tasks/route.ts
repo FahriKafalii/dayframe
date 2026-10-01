@@ -18,6 +18,7 @@ const createSchema = z.object({
   remind_at: z.string().datetime({ offset: true }).nullable().optional(),
   recurrence: z.enum(["daily", "weekly", "monthly"]).nullable().optional(),
   group_id: z.string().uuid().nullable().optional(),
+  is_important: z.boolean().optional(),
   tag_ids: z.array(z.string().uuid()).optional(),
 });
 
@@ -28,6 +29,11 @@ const querySchema = z.object({
   tag_id: z.string().uuid().optional(),
   // A group id, or the literal "none" for ungrouped tasks.
   group_id: z.union([z.string().uuid(), z.literal("none")]).optional(),
+  // Smart views (Microsoft To Do style).
+  important: z.enum(["true", "false"]).optional(),
+  search: z.string().max(255).optional(),
+  due: z.enum(["today", "planned", "overdue"]).optional(),
+  today: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   // "true" → return the trash (soft-deleted tasks) instead of the active list.
   deleted: z.enum(["true", "false"]).optional(),
 });
@@ -48,10 +54,11 @@ export async function GET(request: NextRequest) {
   try {
     await initDb();
     const userId = requireUserId(request);
-    const { deleted, ...filters } = parseQuery(
+    const { deleted, important, ...rest } = parseQuery(
       request.nextUrl.searchParams,
       querySchema,
     );
+    const filters = { ...rest, important: important === "true" };
     const tasks =
       deleted === "true"
         ? await taskService.listDeleted(userId)

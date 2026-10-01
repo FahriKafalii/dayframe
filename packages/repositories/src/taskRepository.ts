@@ -9,6 +9,14 @@ export interface TaskFilters {
   tag_id?: string;
   /** Filter to tasks in this group. "none" = ungrouped (group_id IS NULL). */
   group_id?: string;
+  /** Only starred tasks (Important view). */
+  important?: boolean;
+  /** Case-insensitive title search. */
+  search?: string;
+  /** Smart date view (today's local date must be passed as `today`). */
+  due?: "today" | "planned" | "overdue";
+  /** Local YYYY-MM-DD used by the `due` filter. */
+  today?: string;
 }
 
 export const taskRepository = {
@@ -25,6 +33,23 @@ export const taskRepository = {
     if (filters.group_id) {
       // "none" selects ungrouped tasks; otherwise a specific group.
       where.group_id = filters.group_id === "none" ? null : filters.group_id;
+    }
+    if (filters.important) {
+      where.is_important = true;
+    }
+    if (filters.search) {
+      where.title = { [Op.iLike]: `%${filters.search}%` };
+    }
+    if (filters.due && filters.today) {
+      // Smart views: today = due today, overdue = due before today (still open),
+      // planned = any task with a due date.
+      if (filters.due === "today") {
+        where.due_date = filters.today;
+      } else if (filters.due === "overdue") {
+        where.due_date = { [Op.lt]: filters.today };
+      } else if (filters.due === "planned") {
+        where.due_date = { [Op.ne]: null };
+      }
     }
     if (filters.from || filters.to) {
       const dateRange: Record<symbol, string> = {};

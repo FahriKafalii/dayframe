@@ -18,6 +18,7 @@ const updateSchema = z.object({
   remind_at: z.string().datetime({ offset: true }).nullable().optional(),
   recurrence: z.enum(["daily", "weekly", "monthly"]).nullable().optional(),
   group_id: z.string().uuid().nullable().optional(),
+  is_important: z.boolean().optional(),
   tag_ids: z.array(z.string().uuid()).optional(),
 });
 

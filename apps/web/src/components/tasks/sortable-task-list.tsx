@@ -20,28 +20,22 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import type { TaskDto } from "@dayframe/types";
-import { TaskRow } from "./task-row";
+import { TaskRow, type TaskRowHandlers } from "./task-row";
 import { cn } from "@/lib/cn";
 
 /**
  * Drag-and-drop sortable task list. Wraps TaskRow with a drag handle and
  * persists the new order via onReorder(ids). Keyboard-accessible (Tab to the
- * handle, Space to pick up, arrows to move).
+ * handle, Space to pick up, arrows to move). Row callbacks are forwarded via
+ * TaskRowHandlers so new actions don't need to be threaded through by hand.
  */
 export function SortableTaskList({
   tasks,
   onReorder,
-  onToggleDone,
-  onCancel,
-  onEdit,
-  onDelete,
-}: {
+  ...handlers
+}: TaskRowHandlers & {
   tasks: TaskDto[];
   onReorder: (orderedIds: string[]) => void;
-  onToggleDone?: (t: TaskDto) => void;
-  onCancel?: (t: TaskDto) => void;
-  onEdit?: (t: TaskDto) => void;
-  onDelete?: (t: TaskDto) => void;
 }) {
   // Local copy so the reorder feels instant; synced when the prop changes.
   const [items, setItems] = useState(tasks);
@@ -77,14 +71,7 @@ export function SortableTaskList({
         strategy={verticalListSortingStrategy}
       >
         {items.map((task) => (
-          <SortableRow
-            key={task.id}
-            task={task}
-            onToggleDone={onToggleDone}
-            onCancel={onCancel}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
+          <SortableRow key={task.id} task={task} {...handlers} />
         ))}
       </SortableContext>
     </DndContext>
@@ -93,17 +80,8 @@ export function SortableTaskList({
 
 function SortableRow({
   task,
-  onToggleDone,
-  onCancel,
-  onEdit,
-  onDelete,
-}: {
-  task: TaskDto;
-  onToggleDone?: (t: TaskDto) => void;
-  onCancel?: (t: TaskDto) => void;
-  onEdit?: (t: TaskDto) => void;
-  onDelete?: (t: TaskDto) => void;
-}) {
+  ...handlers
+}: TaskRowHandlers & { task: TaskDto }) {
   const {
     attributes,
     listeners,
@@ -137,13 +115,7 @@ function SortableRow({
         <GripVertical size={15} />
       </button>
       <div className="flex-1 min-w-0">
-        <TaskRow
-          task={task}
-          onToggleDone={onToggleDone}
-          onCancel={onCancel}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
+        <TaskRow task={task} {...handlers} />
       </div>
     </div>
   );

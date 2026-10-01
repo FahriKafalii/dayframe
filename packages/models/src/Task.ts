@@ -16,6 +16,7 @@ export interface TaskAttributes {
   remind_at: Date | null;
   recurrence: TaskRecurrence | null;
   group_id: string | null;
+  is_important: boolean;
   completed_at: Date | null;
   created_at: Date;
   updated_at: Date;
@@ -31,11 +32,13 @@ export type TaskCreationAttributes = Omit<
   | "remind_at"
   | "recurrence"
   | "group_id"
+  | "is_important"
 > & {
   position?: number | null;
   remind_at?: Date | null;
   recurrence?: TaskRecurrence | null;
   group_id?: string | null;
+  is_important?: boolean;
 };
 
 export class Task extends Model<TaskAttributes, TaskCreationAttributes> implements TaskAttributes {
@@ -50,6 +53,7 @@ export class Task extends Model<TaskAttributes, TaskCreationAttributes> implemen
   declare remind_at: Date | null;
   declare recurrence: TaskRecurrence | null;
   declare group_id: string | null;
+  declare is_important: boolean;
   declare completed_at: Date | null;
   declare created_at: Date;
   declare updated_at: Date;
@@ -110,6 +114,12 @@ export function initTask(sequelize: Sequelize): void {
         type: DataTypes.UUID,
         allowNull: true,
         field: "group_id",
+      },
+      is_important: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: "is_important",
       },
       completed_at: {
         type: DataTypes.DATE,

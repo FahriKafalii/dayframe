@@ -19,6 +19,7 @@ export interface TaskDto {
   remind_at: string | null;
   recurrence: TaskRecurrence | null;
   group_id: string | null;
+  is_important: boolean;
   completed_at: string | null;
   created_at: string;
   updated_at: string;
