@@ -1,12 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Keep sequelize external (it relies on dynamic requires that can't be
-  // bundled). pg / pg-hstore are intentionally NOT external so Next bundles
-  // the Postgres driver into the serverless function; in this pnpm monorepo
-  // they are only symlinked into apps/api, and leaving them external made the
-  // function ship without pg ("Please install pg package manually") on Vercel.
-  serverExternalPackages: ["sequelize"],
+  // sequelize loads its dialect (pg) via a dynamic require that a bundler can't
+  // follow, so these must stay external and be present in node_modules at
+  // runtime. See vercel.json's installCommand, which installs the whole pnpm
+  // workspace so the hoisted pg driver ships with the function.
+  serverExternalPackages: ["sequelize", "pg", "pg-hstore"],
   transpilePackages: [
     "@dayframe/db",
     "@dayframe/lib",
