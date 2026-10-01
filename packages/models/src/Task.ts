@@ -2,6 +2,7 @@ import { DataTypes, Model, type Sequelize } from "sequelize";
 
 export type TaskStatus = "OPEN" | "DONE" | "CANCELED";
 export type TaskPriority = "LOW" | "MED" | "HIGH";
+export type TaskRecurrence = "daily" | "weekly" | "monthly";
 
 export interface TaskAttributes {
   id: string;
@@ -11,6 +12,10 @@ export interface TaskAttributes {
   status: TaskStatus;
   priority: TaskPriority;
   due_date: string | null;
+  position: number | null;
+  remind_at: Date | null;
+  recurrence: TaskRecurrence | null;
+  group_id: string | null;
   completed_at: Date | null;
   created_at: Date;
   updated_at: Date;
@@ -19,8 +24,19 @@ export interface TaskAttributes {
 
 export type TaskCreationAttributes = Omit<
   TaskAttributes,
-  "created_at" | "updated_at" | "deleted_at"
->;
+  | "created_at"
+  | "updated_at"
+  | "deleted_at"
+  | "position"
+  | "remind_at"
+  | "recurrence"
+  | "group_id"
+> & {
+  position?: number | null;
+  remind_at?: Date | null;
+  recurrence?: TaskRecurrence | null;
+  group_id?: string | null;
+};
 
 export class Task extends Model<TaskAttributes, TaskCreationAttributes> implements TaskAttributes {
   declare id: string;
@@ -30,6 +46,10 @@ export class Task extends Model<TaskAttributes, TaskCreationAttributes> implemen
   declare status: TaskStatus;
   declare priority: TaskPriority;
   declare due_date: string | null;
+  declare position: number | null;
+  declare remind_at: Date | null;
+  declare recurrence: TaskRecurrence | null;
+  declare group_id: string | null;
   declare completed_at: Date | null;
   declare created_at: Date;
   declare updated_at: Date;
@@ -72,6 +92,24 @@ export function initTask(sequelize: Sequelize): void {
         type: DataTypes.DATEONLY,
         allowNull: true,
         field: "due_date",
+      },
+      position: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      remind_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: "remind_at",
+      },
+      recurrence: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+      },
+      group_id: {
+        type: DataTypes.UUID,
+        allowNull: true,
+        field: "group_id",
       },
       completed_at: {
         type: DataTypes.DATE,

@@ -1,10 +1,14 @@
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 import { Task, type TaskCreationAttributes, type TaskStatus } from "@dayframe/models";
 
 export interface TaskFilters {
   status?: TaskStatus;
   from?: string;
   to?: string;
+  /** Filter to tasks carrying this tag. Applied in the service layer post-fetch. */
+  tag_id?: string;
+  /** Filter to tasks in this group. "none" = ungrouped (group_id IS NULL). */
+  group_id?: string;
 }
 
 export const taskRepository = {
@@ -18,6 +22,10 @@ export const taskRepository = {
     if (filters.status) {
       where.status = filters.status;
     }
+    if (filters.group_id) {
+      // "none" selects ungrouped tasks; otherwise a specific group.
+      where.group_id = filters.group_id === "none" ? null : filters.group_id;
+    }
     if (filters.from || filters.to) {
       const dateRange: Record<symbol, string> = {};
       if (filters.from) dateRange[Op.gte] = filters.from;
@@ -27,7 +35,63 @@ export const taskRepository = {
       ];
     }
 
-    return Task.findAll({ where, order: [["created_at", "DESC"]] });
+    // Manual position first (nulls last), then newest created. Postgres sorts
+    // NULLs last for ASC only with NULLS LAST; emulate via COALESCE to a large value.
+    return Task.findAll({
+      where,
+      order: [
+        [fn("COALESCE", col("position"), 2147483647), "ASC"],
+        ["created_at", "DESC"],
+      ],
+    });
+  },
+
+  /** Smallest position among a user's tasks (for inserting new tasks at the top). */
+  async minPosition(userId: string): Promise<number | null> {
+    const row = (await Task.findOne({
+      where: { user_id: userId },
+      attributes: [[fn("MIN", col("position")), "min"]],
+      raw: true,
+    })) as { min: number | null } | null;
+    return row?.min ?? null;
+  },
+
+  /** Apply new positions in bulk (reorder). Each row scoped to the user. */
+  async setPositions(
+    userId: string,
+    updates: { id: string; position: number }[],
+  ): Promise<void> {
+    await Promise.all(
+      updates.map((u) =>
+        Task.update(
+          { position: u.position },
+          { where: { id: u.id, user_id: userId } },
+        ),
+      ),
+    );
+  },
+
+  /** Soft-deleted tasks only (trash view). Uses paranoid:false + deleted_at NOT NULL. */
+  async findDeletedByUser(userId: string) {
+    return Task.findAll({
+      where: {
+        user_id: userId,
+        deleted_at: { [Op.ne]: null },
+      },
+      order: [["deleted_at", "DESC"]],
+      paranoid: false,
+    });
+  },
+
+  /** Restore a soft-deleted task. Returns the restored row, or null if nothing matched. */
+  async restoreByIdAndUser(id: string, userId: string) {
+    const row = await Task.findOne({
+      where: { id, user_id: userId },
+      paranoid: false,
+    });
+    if (!row || row.deleted_at === null) return null;
+    await row.restore();
+    return row;
   },
 
   async create(attrs: TaskCreationAttributes) {

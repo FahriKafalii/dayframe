@@ -41,6 +41,11 @@ export function shortDate(s: string, l?: LocaleCode): string {
   return format(parseISO(s), "MMM d", { locale: loc(l) });
 }
 
+/** Short date + time, e.g. "Mar 5, 14:30". Accepts an ISO datetime string. */
+export function shortDateTime(s: string, l?: LocaleCode): string {
+  return format(parseISO(s), "MMM d, HH:mm", { locale: loc(l) });
+}
+
 export function monthLabel(d: Date, l?: LocaleCode): string {
   return format(d, "MMMM yyyy", { locale: loc(l) });
 }

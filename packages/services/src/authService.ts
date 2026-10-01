@@ -9,7 +9,9 @@ export const authService = {
   async register(username: string, password: string) {
     const existing = await userRepository.findByUsername(username);
     if (existing) {
-      throw new AppError("CONFLICT", "Username already taken");
+      throw new AppError("CONFLICT", "Username already taken", {
+        reason: "USERNAME_TAKEN",
+      });
     }
 
     const id = randomUUID();
@@ -22,12 +24,16 @@ export const authService = {
   async login(username: string, password: string) {
     const user = await userRepository.findByUsername(username);
     if (!user) {
-      throw new AppError("UNAUTHORIZED", "Invalid credentials");
+      throw new AppError("UNAUTHORIZED", "Invalid credentials", {
+        reason: "INVALID_CREDENTIALS",
+      });
     }
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
-      throw new AppError("UNAUTHORIZED", "Invalid credentials");
+      throw new AppError("UNAUTHORIZED", "Invalid credentials", {
+        reason: "INVALID_CREDENTIALS",
+      });
     }
 
     return { id: user.id, username: user.username };

@@ -1,84 +1,41 @@
 'use strict';
 
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('tasks', {
+    await queryInterface.createTable('users', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         primaryKey: true,
         allowNull: false,
       },
-      user_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
-      },
-      title: {
-        type: Sequelize.STRING(255),
+      username: {
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
-      notes: {
+      password_hash: {
         type: Sequelize.TEXT,
-        allowNull: true,
-      },
-      status: {
-        type: Sequelize.STRING(20),
         allowNull: false,
-        defaultValue: 'OPEN',
-      },
-      priority: {
-        type: Sequelize.STRING(10),
-        allowNull: false,
-        defaultValue: 'MED',
-      },
-      due_date: {
-        type: Sequelize.DATEONLY,
-        allowNull: true,
-      },
-      completed_at: {
-        type: Sequelize.DATE,
-        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.fn('NOW'),
       },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.fn('NOW'),
-      },
     });
 
-    await queryInterface.addConstraint('tasks', {
-      fields: ['status'],
-      type: 'check',
-      name: 'tasks_status_check',
-      where: {
-        status: ['OPEN', 'DONE', 'CANCELED'],
-      },
+    // Classic unique constraint at creation time. The later
+    // 20260419000000-add-soft-delete migration replaces this with a partial
+    // unique index (WHERE deleted_at IS NULL) once soft delete is introduced.
+    await queryInterface.addConstraint('users', {
+      fields: ['username'],
+      type: 'unique',
+      name: 'users_username_key',
     });
-
-    await queryInterface.addConstraint('tasks', {
-      fields: ['priority'],
-      type: 'check',
-      name: 'tasks_priority_check',
-      where: {
-        priority: ['LOW', 'MED', 'HIGH'],
-      },
-    });
-
-    await queryInterface.addIndex('tasks', ['user_id', 'due_date']);
-    await queryInterface.addIndex('tasks', ['user_id', 'status']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('tasks');
+    await queryInterface.dropTable('users');
   },
 };

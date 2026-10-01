@@ -4,6 +4,21 @@ export {
   type CreateTaskInput,
   type UpdateTaskInput,
 } from "./taskService";
+export {
+  subtaskService,
+  type CreateSubtaskInput,
+  type UpdateSubtaskInput,
+} from "./subtaskService";
+export {
+  taskTagService,
+  type CreateTaskTagInput,
+  type UpdateTaskTagInput,
+} from "./taskTagService";
+export {
+  taskGroupService,
+  type CreateTaskGroupInput,
+  type UpdateTaskGroupInput,
+} from "./taskGroupService";
 export { journalService, type UpsertJournalInput } from "./journalService";
 export { calendarService } from "./calendarService";
 export { statsService } from "./statsService";

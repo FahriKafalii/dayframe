@@ -8,7 +8,14 @@ export function json(data: unknown, status = 200): NextResponse {
 export function errorResponse(err: unknown): NextResponse {
   if (err instanceof AppError) {
     return NextResponse.json(
-      { error: { code: err.code, message: err.message, details: err.details } },
+      {
+        error: {
+          code: err.code,
+          reason: err.reason,
+          message: err.message,
+          details: err.details,
+        },
+      },
       { status: err.statusCode },
     );
   }

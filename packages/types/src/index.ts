@@ -1,5 +1,6 @@
 export type TaskStatus = "OPEN" | "DONE" | "CANCELED";
 export type TaskPriority = "LOW" | "MED" | "HIGH";
+export type TaskRecurrence = "daily" | "weekly" | "monthly";
 
 export interface UserDto {
   id: string;
@@ -14,7 +15,45 @@ export interface TaskDto {
   status: TaskStatus;
   priority: TaskPriority;
   due_date: string | null;
+  position: number | null;
+  remind_at: string | null;
+  recurrence: TaskRecurrence | null;
+  group_id: string | null;
   completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Subtask progress summary. Present on list/detail responses; total 0 means
+  // the task has no subtasks. Full list is fetched separately via the
+  // subtasks endpoint.
+  subtask_progress?: { total: number; done: number };
+  // Tags attached to this task (present on list responses).
+  tags?: TaskTagDto[];
+}
+
+export interface TaskTagDto {
+  id: string;
+  name: string;
+  color: string | null;
+}
+
+export interface TaskGroupDto {
+  id: string;
+  user_id: string;
+  parent_id: string | null;
+  name: string;
+  color: string | null;
+  position: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubtaskDto {
+  id: string;
+  task_id: string;
+  user_id: string;
+  title: string;
+  done: boolean;
+  position: number;
   created_at: string;
   updated_at: string;
 }

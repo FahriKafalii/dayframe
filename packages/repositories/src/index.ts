@@ -1,5 +1,8 @@
 export { userRepository } from "./userRepository";
 export { taskRepository, type TaskFilters } from "./taskRepository";
+export { subtaskRepository } from "./subtaskRepository";
+export { taskTagRepository } from "./taskTagRepository";
+export { taskGroupRepository } from "./taskGroupRepository";
 export { journalRepository } from "./journalRepository";
 export { accountRepository } from "./accountRepository";
 export { categoryRepository } from "./categoryRepository";

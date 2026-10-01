@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FieldError, Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError } from "@/lib/api";
 import { useT } from "@/lib/i18n-context";
+import { errorMessage } from "@/lib/error-message";
+import { HOME_PATH } from "@/lib/modules";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LoginPage() {
   const { t } = useT();
 
   useEffect(() => {
-    if (status === "authenticated") router.replace("/app");
+    if (status === "authenticated") router.replace(HOME_PATH);
   }, [status, router]);
 
   const schema = useMemo(
@@ -44,11 +45,9 @@ export default function LoginPage() {
     try {
       await login(values.username, values.password);
       toast.success(t("common.welcomeBack"));
-      router.replace("/app");
+      router.replace(HOME_PATH);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : t("auth.signInFailed");
-      toast.error(message);
+      toast.error(errorMessage(err, t));
     }
   }
 

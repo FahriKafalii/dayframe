@@ -17,6 +17,7 @@ const updateSchema = z.object({
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   remind_at: z.string().datetime({ offset: true }).nullable().optional(),
   recurrence: z.enum(["daily", "weekly", "monthly"]).nullable().optional(),
+  group_id: z.string().uuid().nullable().optional(),
   tag_ids: z.array(z.string().uuid()).optional(),
 });
 

@@ -1,6 +1,10 @@
 import { type Sequelize } from "sequelize";
 import { User, initUser } from "./User";
 import { Task, initTask } from "./Task";
+import { Subtask, initSubtask } from "./Subtask";
+import { TaskTag, initTaskTag } from "./TaskTag";
+import { TaskTagLink, initTaskTagLink } from "./TaskTagLink";
+import { TaskGroup, initTaskGroup } from "./TaskGroup";
 import { JournalEntry, initJournalEntry } from "./JournalEntry";
 import { TaskJournalLink, initTaskJournalLink } from "./TaskJournalLink";
 import { Account, initAccount } from "./Account";
@@ -12,6 +16,10 @@ import { TransactionTag, initTransactionTag } from "./TransactionTag";
 export function registerModels(sequelize: Sequelize): void {
   initUser(sequelize);
   initTask(sequelize);
+  initSubtask(sequelize);
+  initTaskTag(sequelize);
+  initTaskTagLink(sequelize);
+  initTaskGroup(sequelize);
   initJournalEntry(sequelize);
   initTaskJournalLink(sequelize);
   initAccount(sequelize);
@@ -22,6 +30,33 @@ export function registerModels(sequelize: Sequelize): void {
 
   User.hasMany(Task, { foreignKey: "user_id", as: "tasks" });
   Task.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+  Task.hasMany(Subtask, { foreignKey: "task_id", as: "subtasks" });
+  Subtask.belongsTo(Task, { foreignKey: "task_id", as: "task" });
+  User.hasMany(Subtask, { foreignKey: "user_id", as: "subtasks" });
+  Subtask.belongsTo(User, { foreignKey: "user_id", as: "user" });
+
+  User.hasMany(TaskTag, { foreignKey: "user_id", as: "taskTags" });
+  TaskTag.belongsTo(User, { foreignKey: "user_id", as: "user" });
+  Task.belongsToMany(TaskTag, {
+    through: TaskTagLink,
+    foreignKey: "task_id",
+    otherKey: "tag_id",
+    as: "tags",
+  });
+  TaskTag.belongsToMany(Task, {
+    through: TaskTagLink,
+    foreignKey: "tag_id",
+    otherKey: "task_id",
+    as: "tasks",
+  });
+
+  User.hasMany(TaskGroup, { foreignKey: "user_id", as: "taskGroups" });
+  TaskGroup.belongsTo(User, { foreignKey: "user_id", as: "user" });
+  TaskGroup.hasMany(TaskGroup, { foreignKey: "parent_id", as: "children" });
+  TaskGroup.belongsTo(TaskGroup, { foreignKey: "parent_id", as: "parent" });
+  TaskGroup.hasMany(Task, { foreignKey: "group_id", as: "tasks" });
+  Task.belongsTo(TaskGroup, { foreignKey: "group_id", as: "group" });
 
   User.hasMany(JournalEntry, { foreignKey: "user_id", as: "journalEntries" });
   JournalEntry.belongsTo(User, { foreignKey: "user_id", as: "user" });
@@ -76,6 +111,10 @@ export function registerModels(sequelize: Sequelize): void {
 
 export { User } from "./User";
 export { Task } from "./Task";
+export { Subtask } from "./Subtask";
+export { TaskTag } from "./TaskTag";
+export { TaskTagLink } from "./TaskTagLink";
+export { TaskGroup } from "./TaskGroup";
 export { JournalEntry } from "./JournalEntry";
 export { TaskJournalLink } from "./TaskJournalLink";
 export { Account } from "./Account";
@@ -85,7 +124,20 @@ export { Tag } from "./Tag";
 export { TransactionTag } from "./TransactionTag";
 
 export type { UserAttributes, UserCreationAttributes } from "./User";
-export type { TaskAttributes, TaskCreationAttributes, TaskStatus, TaskPriority } from "./Task";
+export type {
+  TaskAttributes,
+  TaskCreationAttributes,
+  TaskStatus,
+  TaskPriority,
+  TaskRecurrence,
+} from "./Task";
+export type { SubtaskAttributes, SubtaskCreationAttributes } from "./Subtask";
+export type { TaskTagAttributes, TaskTagCreationAttributes } from "./TaskTag";
+export type { TaskTagLinkAttributes } from "./TaskTagLink";
+export type {
+  TaskGroupAttributes,
+  TaskGroupCreationAttributes,
+} from "./TaskGroup";
 export type { JournalEntryAttributes, JournalEntryCreationAttributes } from "./JournalEntry";
 export type { TaskJournalLinkAttributes } from "./TaskJournalLink";
 export type {

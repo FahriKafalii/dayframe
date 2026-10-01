@@ -13,10 +13,22 @@ let modelsRegistered = false;
 
 export function getSequelize(): Sequelize {
   if (!store.sequelize) {
-    store.sequelize = new Sequelize(env.DATABASE_URL, {
+    // Managed Postgres (Neon, Supabase, Vercel PG) requires SSL. Detect it from
+    // the connection string; local Docker postgres does not use SSL.
+    const url = env.DATABASE_URL;
+    const needsSsl =
+      /sslmode=require/i.test(url) || /\.neon\.tech/i.test(url);
+    store.sequelize = new Sequelize(url, {
       dialect: "postgres",
       logging: false,
       pool: { max: 10, min: 1, acquire: 30_000, idle: 10_000 },
+      ...(needsSsl
+        ? {
+            dialectOptions: {
+              ssl: { require: true, rejectUnauthorized: false },
+            },
+          }
+        : {}),
     });
   }
   return store.sequelize;

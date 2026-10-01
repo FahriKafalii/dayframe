@@ -11,9 +11,13 @@ import type {
   KasaSummaryDto,
   StatsActivityDayDto,
   StatsSummaryDto,
+  SubtaskDto,
   TaskDto,
+  TaskGroupDto,
   TaskPriority,
+  TaskRecurrence,
   TaskStatus,
+  TaskTagDto,
   TransactionDto,
   TransactionStatus,
   UserDto,
@@ -27,6 +31,8 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    /** Specific machine-readable reason (e.g. USERNAME_TAKEN) for localized UI messages. */
+    public readonly reason?: string,
     public readonly details?: unknown,
   ) {
     super(message);
@@ -35,26 +41,44 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch {
+    // Network failure / CORS / server down — never reached the API.
+    throw new ApiError(0, "NETWORK", "Network request failed", "NETWORK");
+  }
 
   if (!response.ok) {
     let payload: {
-      error?: { code: string; message: string; details?: unknown };
+      error?: {
+        code: string;
+        reason?: string;
+        message: string;
+        details?: unknown;
+      };
     } = {};
     try {
       payload = await response.json();
     } catch {
       /* noop */
     }
-    const err = payload.error ?? { code: "UNKNOWN", message: response.statusText };
-    throw new ApiError(response.status, err.code, err.message, err.details);
+    const err =
+      payload.error ?? { code: "UNKNOWN", message: response.statusText };
+    throw new ApiError(
+      response.status,
+      err.code,
+      err.message,
+      err.reason,
+      err.details,
+    );
   }
 
   if (response.status === 204) return undefined as T;
@@ -86,20 +110,37 @@ export const api = {
       status?: TaskStatus;
       from?: string;
       to?: string;
+      tag_id?: string;
+      group_id?: string;
+      deleted?: boolean;
     }) => {
       const params = new URLSearchParams();
       if (filters?.status) params.set("status", filters.status);
       if (filters?.from) params.set("from", filters.from);
       if (filters?.to) params.set("to", filters.to);
+      if (filters?.tag_id) params.set("tag_id", filters.tag_id);
+      if (filters?.group_id) params.set("group_id", filters.group_id);
+      if (filters?.deleted) params.set("deleted", "true");
       const qs = params.toString();
       return apiFetch<TaskDto[]>(`/api/tasks${qs ? `?${qs}` : ""}`);
     },
+    restore: (id: string) =>
+      apiFetch<TaskDto>(`/api/tasks/${id}/restore`, { method: "POST" }),
+    reorder: (ids: string[]) =>
+      apiFetch<{ ok: true }>("/api/tasks/reorder", {
+        method: "PATCH",
+        body: JSON.stringify({ ids }),
+      }),
     get: (id: string) => apiFetch<TaskDto>(`/api/tasks/${id}`),
     create: (body: {
       title: string;
       notes?: string | null;
       priority?: TaskPriority;
       due_date?: string | null;
+      remind_at?: string | null;
+      recurrence?: TaskRecurrence | null;
+      group_id?: string | null;
+      tag_ids?: string[];
     }) =>
       apiFetch<TaskDto>("/api/tasks", {
         method: "POST",
@@ -113,6 +154,10 @@ export const api = {
         status: TaskStatus;
         priority: TaskPriority;
         due_date: string | null;
+        remind_at: string | null;
+        recurrence: TaskRecurrence | null;
+        group_id: string | null;
+        tag_ids: string[];
       }>,
     ) =>
       apiFetch<TaskDto>(`/api/tasks/${id}`, {
@@ -121,6 +166,69 @@ export const api = {
       }),
     remove: (id: string) =>
       apiFetch<void>(`/api/tasks/${id}`, { method: "DELETE" }),
+    subtasks: {
+      list: (taskId: string) =>
+        apiFetch<SubtaskDto[]>(`/api/tasks/${taskId}/subtasks`),
+      create: (taskId: string, body: { title: string }) =>
+        apiFetch<SubtaskDto>(`/api/tasks/${taskId}/subtasks`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (
+        taskId: string,
+        subId: string,
+        body: Partial<{ title: string; done: boolean }>,
+      ) =>
+        apiFetch<SubtaskDto>(`/api/tasks/${taskId}/subtasks/${subId}`, {
+          method: "PATCH",
+          body: JSON.stringify(body),
+        }),
+      remove: (taskId: string, subId: string) =>
+        apiFetch<void>(`/api/tasks/${taskId}/subtasks/${subId}`, {
+          method: "DELETE",
+        }),
+    },
+  },
+  taskTags: {
+    list: () => apiFetch<TaskTagDto[]>("/api/task-tags"),
+    create: (body: { name: string; color?: string | null }) =>
+      apiFetch<TaskTagDto>("/api/task-tags", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    update: (id: string, body: Partial<{ name: string; color: string | null }>) =>
+      apiFetch<TaskTagDto>(`/api/task-tags/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+    remove: (id: string) =>
+      apiFetch<void>(`/api/task-tags/${id}`, { method: "DELETE" }),
+  },
+  taskGroups: {
+    list: () => apiFetch<TaskGroupDto[]>("/api/task-groups"),
+    create: (body: {
+      name: string;
+      parent_id?: string | null;
+      color?: string | null;
+    }) =>
+      apiFetch<TaskGroupDto>("/api/task-groups", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    update: (
+      id: string,
+      body: Partial<{
+        name: string;
+        parent_id: string | null;
+        color: string | null;
+      }>,
+    ) =>
+      apiFetch<TaskGroupDto>(`/api/task-groups/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+    remove: (id: string) =>
+      apiFetch<void>(`/api/task-groups/${id}`, { method: "DELETE" }),
   },
   journal: {
     get: (date: string) => apiFetch<JournalEntryDto>(`/api/journal/${date}`),

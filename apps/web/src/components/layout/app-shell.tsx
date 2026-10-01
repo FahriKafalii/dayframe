@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useT } from "@/lib/i18n-context";
+import { HOME_PATH, isDisabledPath } from "@/lib/modules";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import { UserMenu } from "./user-menu";
@@ -14,6 +15,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { status } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const { t } = useT();
 
   useEffect(() => {
@@ -22,7 +24,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [status, router]);
 
+  // Route guard: while only the Tasks module is active, redirect any hit to a
+  // disabled module (or the /app dashboard root) to the tasks page. See
+  // lib/modules.ts · TODO_MODULE_PLAN.md Faz 0.
+  useEffect(() => {
+    if (status === "authenticated" && isDisabledPath(pathname)) {
+      router.replace(HOME_PATH);
+    }
+  }, [status, pathname, router]);
+
   if (status === "loading" || status === "unauthenticated") {
+    return <FullPageLoader />;
+  }
+
+  // Avoid flashing disabled-module content for the frame before the redirect.
+  if (isDisabledPath(pathname)) {
     return <FullPageLoader />;
   }
 
