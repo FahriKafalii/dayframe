@@ -23,12 +23,6 @@ import type { TaskDto } from "@dayframe/types";
 import { TaskRow, type TaskRowHandlers } from "./task-row";
 import { cn } from "@/lib/cn";
 
-/**
- * Drag-and-drop sortable task list. Wraps TaskRow with a drag handle and
- * persists the new order via onReorder(ids). Keyboard-accessible (Tab to the
- * handle, Space to pick up, arrows to move). Row callbacks are forwarded via
- * TaskRowHandlers so new actions don't need to be threaded through by hand.
- */
 export function SortableTaskList({
   tasks,
   onReorder,
@@ -37,12 +31,11 @@ export function SortableTaskList({
   tasks: TaskDto[];
   onReorder: (orderedIds: string[]) => void;
 }) {
-  // Local copy so the reorder feels instant; synced when the prop changes.
   const [items, setItems] = useState(tasks);
   useEffect(() => setItems(tasks), [tasks]);
 
   const sensors = useSensors(
-    // 6px activation distance so a click still fires normal button actions.
+    // Require 6px of movement before dragging so taps still fire row buttons.
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,

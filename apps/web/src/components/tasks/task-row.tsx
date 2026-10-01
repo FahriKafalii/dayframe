@@ -38,8 +38,8 @@ const statusLabelKey: Record<TaskStatus, MessageKey> = {
   CANCELED: "tasks.statusCanceled",
 };
 
-/** Row action callbacks, shared so wrappers can forward them without repeating
- *  the prop list (see SortableTaskList). */
+// Shared so wrappers (e.g. SortableTaskList) can forward every row action
+// without re-declaring the prop list.
 export interface TaskRowHandlers {
   onToggleDone?: (t: TaskDto) => void;
   onToggleImportant?: (t: TaskDto) => void;

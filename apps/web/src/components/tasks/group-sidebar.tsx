@@ -118,7 +118,6 @@ export function GroupSidebar({
 
   return (
     <div className="space-y-1">
-      {/* Search */}
       <div className="relative mb-2">
         <Search
           size={14}
@@ -132,7 +131,6 @@ export function GroupSidebar({
         />
       </div>
 
-      {/* Smart views (My Day / Important / Planned / All) */}
       <div className="space-y-0.5 mb-2">
         {SMART_VIEWS.map((v) => {
           const Icon = SMART_VIEW_ICONS[v.icon];

@@ -1,7 +1,5 @@
 import type { MessageKey } from "@/lib/i18n-context";
 
-// Microsoft To Do -style smart views. Each maps to a server filter built in
-// buildSmartFilter(); "all" is the default (no extra filter).
 export type SmartView = "all" | "myday" | "important" | "planned";
 
 export const SMART_VIEWS: { key: SmartView; labelKey: MessageKey; icon: string }[] = [

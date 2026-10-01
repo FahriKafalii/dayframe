@@ -3,7 +3,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    // Star / "important" flag (Microsoft To Do style). Drives the Important view.
     await queryInterface.addColumn('tasks', 'is_important', {
       type: Sequelize.BOOLEAN,
       allowNull: false,

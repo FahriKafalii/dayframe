@@ -63,11 +63,11 @@ export default function TasksPage() {
   const [quickAdding, setQuickAdding] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Are any non-default filters active? (drives the filter badge/indicator)
   const hasActiveFilters = status !== "ALL" || from !== "" || to !== "";
 
   const isTrash = view === "trash";
-  // Manual drag-reorder only makes sense on the unfiltered active list.
+  // Reordering persists absolute positions, so it must run against the full
+  // unfiltered list or positions would be computed from a partial view.
   const canReorder =
     !isTrash &&
     groupBy === "none" &&
@@ -84,7 +84,6 @@ export default function TasksPage() {
     }
   }, []);
 
-  // Smart-view badge counts, derived from one fetch of all active tasks.
   const loadViewCounts = useCallback(async () => {
     try {
       const all = await api.tasks.list();
@@ -126,7 +125,6 @@ export default function TasksPage() {
     }
   }, [view, status, from, to, groupFilter, smartView, search, t]);
 
-  // Refresh the list and the sidebar counts together after a mutation.
   const refresh = useCallback(() => {
     load();
     loadViewCounts();
@@ -173,7 +171,6 @@ export default function TasksPage() {
 
   async function handleToggleImportant(task: TaskDto) {
     const next = !task.is_important;
-    // Optimistic: flip the star locally before the request resolves.
     setTasks((prev) =>
       prev
         ? prev.map((x) => (x.id === task.id ? { ...x, is_important: next } : x))
@@ -247,7 +244,6 @@ export default function TasksPage() {
   }
 
   async function handleReorder(orderedIds: string[]) {
-    // Reflect the new order locally right away.
     setTasks((prev) => {
       if (!prev) return prev;
       const byId = new Map(prev.map((t) => [t.id, t]));
@@ -269,7 +265,6 @@ export default function TasksPage() {
     if (!title || quickAdding) return;
     setQuickAdding(true);
     try {
-      // If viewing a specific group, drop the new task into it.
       const group_id =
         groupFilter !== "all" && groupFilter !== "none" ? groupFilter : null;
       await api.tasks.create({ title, group_id });
@@ -283,7 +278,6 @@ export default function TasksPage() {
   }
 
   async function handleRestore(task: TaskDto) {
-    // Optimistic: drop it from the trash list immediately.
     setTasks((prev) => (prev ? prev.filter((x) => x.id !== task.id) : prev));
     try {
       await api.tasks.restore(task.id);
@@ -294,8 +288,6 @@ export default function TasksPage() {
     }
   }
 
-  // Shared row actions, spread into every TaskRow / SortableTaskList so adding
-  // a handler is a one-line change rather than touching each call site.
   const rowHandlers = {
     onToggleDone: handleToggleDone,
     onToggleImportant: handleToggleImportant,
@@ -319,7 +311,6 @@ export default function TasksPage() {
         }
       />
 
-      {/* View tabs: Active / Trash */}
       <div className="mb-4 inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)]">
         <button
           onClick={() => setView("active")}
@@ -387,7 +378,6 @@ export default function TasksPage() {
               />
             </div>
           </form>
-          {/* Grouping toggle: List / By date */}
           <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
             <button
               onClick={() => setGroupBy("none")}
@@ -419,7 +409,6 @@ export default function TasksPage() {
 
       {!isTrash && groupBy === "none" && (
       <>
-      {/* Mobile-only toggle to reveal filters (kept out of the way by default). */}
       <button
         onClick={() => setShowFilters((v) => !v)}
         className="sm:hidden mb-3 w-full h-10 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] inline-flex items-center justify-center gap-2 text-sm text-[color:var(--color-fg-muted)]"
