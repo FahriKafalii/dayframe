@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "dotenv-cli": "^7.4.4",
     "sequelize-cli": "^6.6.5",
     "typescript": "^5"
