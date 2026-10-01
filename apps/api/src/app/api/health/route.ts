@@ -1,4 +1,4 @@
-import { initDb, ping } from "@dayframe/db";
+import { initDb, pingDetail } from "@dayframe/db";
 import { json } from "@dayframe/lib";
 
 export const dynamic = "force-dynamic";
@@ -6,13 +6,17 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await initDb();
-  } catch {
-    return json({ status: "degraded", db: "down" }, 503);
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err);
+    return json({ status: "degraded", db: "down", stage: "init", error }, 503);
   }
 
-  const dbOk = await ping();
-  if (dbOk) {
+  const result = await pingDetail();
+  if (result.ok) {
     return json({ status: "ok", db: "ok" });
   }
-  return json({ status: "degraded", db: "down" }, 503);
+  return json(
+    { status: "degraded", db: "down", stage: "ping", error: result.error },
+    503,
+  );
 }
