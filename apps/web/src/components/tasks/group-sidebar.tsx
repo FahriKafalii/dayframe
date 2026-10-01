@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CalendarRange,
   ChevronDown,
@@ -10,6 +10,8 @@ import {
   FolderPlus,
   Inbox,
   Infinity as InfinityIcon,
+  MoreHorizontal,
+  Pencil,
   Plus,
   Search,
   Star,
@@ -70,6 +72,10 @@ export function GroupSidebar({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  // Group currently being renamed inline (holds the id + draft name).
+  const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(
+    null,
+  );
 
   const flat = flattenGroups(groups, collapsed);
 
@@ -103,6 +109,20 @@ export function GroupSidebar({
       toast.error(errorMessage(err, t));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function renameGroup(id: string, raw: string) {
+    const value = raw.trim();
+    setRenaming(null);
+    if (!value) return;
+    const current = groups.find((g) => g.id === id);
+    if (current && value === current.name) return;
+    try {
+      await api.taskGroups.update(id, { name: value });
+      onGroupsChanged();
+    } catch (err) {
+      toast.error(errorMessage(err, t));
     }
   }
 
@@ -224,54 +244,83 @@ export function GroupSidebar({
                   <span className="w-6 shrink-0" aria-hidden />
                 )}
 
-                <button
-                  onClick={() => onSelect(group.id)}
-                  className={cn(
-                    "flex-1 min-w-0 flex items-center gap-2 h-8 pr-2 text-sm text-left",
-                    isSelected
-                      ? "text-[color:var(--color-fg)] font-medium"
-                      : "text-[color:var(--color-fg-muted)]",
-                  )}
-                >
-                  {hasChildren && !isCollapsed ? (
-                    <FolderOpen
-                      size={14}
-                      className="shrink-0"
-                      style={group.color ? { color: group.color } : undefined}
+                {renaming?.id === group.id ? (
+                  <div className="flex-1 min-w-0 pr-2">
+                    <GroupNameInput
+                      value={renaming.value}
+                      onChange={(v) => setRenaming({ id: group.id, value: v })}
+                      onSubmit={() => renameGroup(group.id, renaming.value)}
+                      onBlur={() => renameGroup(group.id, renaming.value)}
+                      onCancel={() => setRenaming(null)}
+                      placeholder={t("tasks.groupNamePlaceholder")}
                     />
-                  ) : (
-                    <Folder
-                      size={14}
-                      className="shrink-0 text-[color:var(--color-fg-subtle)]"
-                      style={group.color ? { color: group.color } : undefined}
-                    />
-                  )}
-                  <span className="truncate">{group.name}</span>
-                </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => onSelect(group.id)}
+                    className={cn(
+                      "flex-1 min-w-0 flex items-center gap-2 h-8 pr-2 text-sm text-left",
+                      isSelected
+                        ? "text-[color:var(--color-fg)] font-medium"
+                        : "text-[color:var(--color-fg-muted)]",
+                    )}
+                  >
+                    {hasChildren && !isCollapsed ? (
+                      <FolderOpen
+                        size={14}
+                        className="shrink-0"
+                        style={group.color ? { color: group.color } : undefined}
+                      />
+                    ) : (
+                      <Folder
+                        size={14}
+                        className="shrink-0 text-[color:var(--color-fg-subtle)]"
+                        style={group.color ? { color: group.color } : undefined}
+                      />
+                    )}
+                    <span className="truncate">{group.name}</span>
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center opacity-0 group-hover/gi:opacity-100 focus-within:opacity-100 transition-opacity pr-1">
-                <button
-                  onClick={() =>
-                    setAddingParent((p) =>
-                      p === group.id ? undefined : group.id,
-                    )
-                  }
-                  className="h-6 w-6 rounded inline-flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface)]"
-                  aria-label={t("tasks.groupSubgroup")}
-                  title={t("tasks.groupSubgroup")}
-                >
-                  <Plus size={13} />
-                </button>
-                <button
-                  onClick={() => deleteGroup(group.id)}
-                  className="h-6 w-6 rounded inline-flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-danger)] hover:bg-[color:var(--color-surface)]"
-                  aria-label={t("tasks.groupDelete")}
-                  title={t("tasks.groupDelete")}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
+              {renaming?.id !== group.id && (
+                <div className="flex items-center pr-1">
+                  <button
+                    onClick={() =>
+                      setAddingParent((p) =>
+                        p === group.id ? undefined : group.id,
+                      )
+                    }
+                    className="h-7 w-7 rounded inline-flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface)]"
+                    aria-label={t("tasks.groupSubgroup")}
+                    title={t("tasks.groupSubgroup")}
+                  >
+                    <Plus size={14} />
+                  </button>
+                  <RowMenu
+                    items={[
+                      {
+                        icon: <Plus size={14} />,
+                        label: t("tasks.groupSubgroup"),
+                        onSelect: () => setAddingParent(group.id),
+                      },
+                      {
+                        icon: <Pencil size={14} />,
+                        label: t("tasks.groupRename"),
+                        onSelect: () =>
+                          setRenaming({ id: group.id, value: group.name }),
+                      },
+                      {
+                        icon: <Trash2 size={14} />,
+                        label: t("tasks.groupDelete"),
+                        danger: true,
+                        onSelect: () => deleteGroup(group.id),
+                      },
+                    ]}
+                    label={t("common.more")}
+                  />
+                </div>
+              )}
             </div>
             {addingParent === group.id && (
               <NewGroupInput
@@ -360,13 +409,42 @@ function GroupItem({
   );
 }
 
-function NewGroupInput({
+// Bare autofocus text input used for both creating and renaming groups.
+function GroupNameInput({
   value,
   onChange,
   onSubmit,
   onCancel,
+  onBlur,
   placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+  /** Blur handler; defaults to onCancel (discard an empty/unfinished draft). */
+  onBlur?: () => void;
+  placeholder: string;
+}) {
+  return (
+    <input
+      autoFocus
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") onSubmit();
+        if (e.key === "Escape") onCancel();
+      }}
+      onBlur={onBlur ?? onCancel}
+      placeholder={placeholder}
+      className="w-full h-8 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
+    />
+  );
+}
+
+function NewGroupInput({
   depth,
+  ...rest
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -377,18 +455,79 @@ function NewGroupInput({
 }) {
   return (
     <div className="py-1" style={{ paddingLeft: depth * INDENT + 6 }}>
-      <input
-        autoFocus
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") onSubmit();
-          if (e.key === "Escape") onCancel();
-        }}
-        onBlur={onCancel}
-        placeholder={placeholder}
-        className="w-full h-8 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-2 text-sm outline-none focus:border-[color:var(--color-border-strong)]"
-      />
+      <GroupNameInput {...rest} />
+    </div>
+  );
+}
+
+interface RowMenuItem {
+  icon: React.ReactNode;
+  label: string;
+  onSelect: () => void;
+  danger?: boolean;
+}
+
+// Small always-visible "..." action menu; closes on outside click or Escape.
+function RowMenu({ items, label }: { items: RowMenuItem[]; label: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={label}
+        title={label}
+        className="h-7 w-7 rounded inline-flex items-center justify-center text-[color:var(--color-fg-subtle)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface)]"
+      >
+        <MoreHorizontal size={15} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 z-50 mt-1 min-w-40 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] shadow-[var(--shadow-pop)] py-1 animate-fade-in"
+        >
+          {items.map((item, i) => (
+            <button
+              key={i}
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                item.onSelect();
+              }}
+              className={cn(
+                "w-full flex items-center gap-2 px-3 h-9 text-sm text-left transition-colors",
+                item.danger
+                  ? "text-[color:var(--color-danger)] hover:bg-[color:var(--color-danger-soft)]"
+                  : "text-[color:var(--color-fg-muted)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-fg)]",
+              )}
+            >
+              <span className="shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

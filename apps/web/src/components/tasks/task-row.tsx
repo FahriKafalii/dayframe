@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   Bell,
+  CalendarDays,
   Check,
   ChevronRight,
   CircleDashed,
@@ -13,30 +14,11 @@ import {
   Star,
   X as XIcon,
 } from "lucide-react";
-import type { TaskDto, TaskPriority, TaskStatus } from "@dayframe/types";
-import { Badge } from "@/components/ui/badge";
+import type { TaskDto } from "@dayframe/types";
 import { cn } from "@/lib/cn";
 import { shortDate, shortDateTime } from "@/lib/date";
-import { useT, type MessageKey } from "@/lib/i18n-context";
+import { useT } from "@/lib/i18n-context";
 import { SubtaskPanel } from "./subtask-panel";
-
-const priorityTone: Record<TaskPriority, "neutral" | "info" | "danger"> = {
-  LOW: "neutral",
-  MED: "info",
-  HIGH: "danger",
-};
-
-const priorityLabelKey: Record<TaskPriority, MessageKey> = {
-  LOW: "tasks.formPrioLow",
-  MED: "tasks.formPrioMed",
-  HIGH: "tasks.formPrioHigh",
-};
-
-const statusLabelKey: Record<TaskStatus, MessageKey> = {
-  OPEN: "tasks.statusOpen",
-  DONE: "tasks.statusDone",
-  CANCELED: "tasks.statusCanceled",
-};
 
 // Shared so wrappers (e.g. SortableTaskList) can forward every row action
 // without re-declaring the prop list.
@@ -83,6 +65,12 @@ export function TaskRow({
     task.subtask_progress ?? { total: 0, done: 0 },
   );
   const hasSubtasks = progress.total > 0;
+  const hasMeta =
+    !!task.due_date ||
+    (!!task.remind_at && !trash) ||
+    !!task.recurrence ||
+    hasSubtasks ||
+    !!task.tags?.length;
 
   return (
     <div className="border-b border-[color:var(--color-border)] last:border-b-0">
@@ -117,110 +105,80 @@ export function TaskRow({
         </button>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <p
-              className={cn(
-                "text-sm truncate min-w-0",
-                done && "line-through text-[color:var(--color-fg-subtle)]",
-                canceled && "line-through text-[color:var(--color-fg-subtle)]",
-              )}
-            >
-              {task.title}
-            </p>
-            {/* Priority badge is a low-priority signal on phones; hide it on the
-                narrowest screens so the title keeps its room. */}
-            <span className="hidden xs:inline-flex shrink-0">
-              <Badge tone={priorityTone[task.priority]}>
-                {t(priorityLabelKey[task.priority])}
-              </Badge>
-            </span>
-            {task.recurrence && (
-              <span
-                className="inline-flex items-center gap-1 text-[11px] text-[color:var(--color-fg-subtle)] shrink-0"
-                title={t("tasks.recurringBadge")}
-              >
-                <Repeat size={12} />
-              </span>
+          <p
+            className={cn(
+              "text-sm truncate min-w-0",
+              task.priority === "HIGH" &&
+                !done &&
+                !canceled &&
+                "font-medium",
+              (done || canceled) &&
+                "line-through text-[color:var(--color-fg-subtle)]",
             )}
-            {hasSubtasks && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-[color:var(--color-fg-subtle)] shrink-0">
-                <ListTree size={12} />
-                {t("tasks.subtasksProgress", {
-                  done: progress.done,
-                  total: progress.total,
-                })}
-              </span>
-            )}
-          </div>
-          {/* Meta row: due date + tags. Kept on a second line so the title is
-              never squeezed, and visible on mobile where the side column hides. */}
-          {(task.tags?.length || task.due_date || task.remind_at) && (
-            <div className="mt-1 flex items-center flex-wrap gap-x-2 gap-y-1 sm:hidden">
+          >
+            {task.title}
+          </p>
+          {/* Secondary meta line: compact, icon-led signals only. Full details
+              (priority, tags, notes) live in the edit panel to keep rows calm. */}
+          {hasMeta && (
+            <div className="mt-0.5 flex items-center flex-wrap gap-x-2.5 gap-y-0.5 text-[11px] text-[color:var(--color-fg-subtle)]">
               {task.due_date && (
-                <span className="text-[11px] text-[color:var(--color-fg-subtle)]">
+                <span className="inline-flex items-center gap-1">
+                  <CalendarDays size={11} />
                   {shortDate(task.due_date, locale)}
                 </span>
               )}
-              {task.tags?.map((tag) => (
+              {task.remind_at && !trash && (
                 <span
-                  key={tag.id}
-                  className="inline-flex items-center h-5 px-2 rounded-full text-[10px] font-medium bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
-                  style={
-                    tag.color
-                      ? { borderColor: tag.color, color: tag.color }
-                      : undefined
-                  }
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    reminderOverdue &&
+                      "text-[color:var(--color-danger)] font-medium",
+                  )}
+                  title={t("tasks.remindAtLabel", {
+                    datetime: shortDateTime(task.remind_at, locale),
+                  })}
                 >
-                  {tag.name}
+                  <Bell size={11} />
+                  {shortDateTime(task.remind_at, locale)}
                 </span>
-              ))}
-            </div>
-          )}
-          {/* Desktop tags inline (second visual row not needed on wide screens) */}
-          {task.tags && task.tags.length > 0 && (
-            <div className="mt-1 hidden sm:flex items-center flex-wrap gap-1.5">
-              {task.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center h-5 px-2 rounded-full text-[10px] font-medium bg-[color:var(--color-surface-2)] text-[color:var(--color-fg-muted)] border border-[color:var(--color-border)]"
-                  style={
-                    tag.color
-                      ? { borderColor: tag.color, color: tag.color }
-                      : undefined
-                  }
-                >
-                  {tag.name}
-                </span>
-              ))}
-            </div>
-          )}
-          {task.notes && (
-            <p className="mt-0.5 text-xs text-[color:var(--color-fg-subtle)] truncate">
-              {task.notes}
-            </p>
-          )}
-        </div>
-
-        <div className="hidden sm:flex items-center gap-2 text-xs text-[color:var(--color-fg-subtle)]">
-          {task.remind_at && !trash && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1",
-                reminderOverdue &&
-                  "text-[color:var(--color-danger)] font-medium",
               )}
-              title={t("tasks.remindAtLabel", {
-                datetime: shortDateTime(task.remind_at, locale),
-              })}
-            >
-              <Bell size={12} />
-              {shortDateTime(task.remind_at, locale)}
-            </span>
+              {task.recurrence && (
+                <span
+                  className="inline-flex items-center gap-1"
+                  title={t("tasks.recurringBadge")}
+                >
+                  <Repeat size={11} />
+                </span>
+              )}
+              {hasSubtasks && (
+                <span className="inline-flex items-center gap-1">
+                  <ListTree size={11} />
+                  {t("tasks.subtasksProgress", {
+                    done: progress.done,
+                    total: progress.total,
+                  })}
+                </span>
+              )}
+              {task.tags && task.tags.length > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  {task.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center gap-1"
+                      title={tag.name}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full bg-[color:var(--color-fg-subtle)]"
+                        style={tag.color ? { backgroundColor: tag.color } : undefined}
+                      />
+                      {tag.name}
+                    </span>
+                  ))}
+                </span>
+              )}
+            </div>
           )}
-          {task.due_date && <span>{shortDate(task.due_date, locale)}</span>}
-          <span className="text-[10px] uppercase tracking-wide">
-            {t(statusLabelKey[task.status])}
-          </span>
         </div>
 
         {!trash && onToggleImportant && (

@@ -363,21 +363,7 @@ export default function TasksPage() {
         <div className="flex-1 min-w-0">
 
       {!isTrash && (
-        <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:items-center">
-          <form onSubmit={handleQuickAdd} className="flex-1 flex items-center gap-2">
-            <div className="flex-1 relative">
-              <Plus
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--color-fg-subtle)] pointer-events-none"
-              />
-              <input
-                value={quickTitle}
-                onChange={(e) => setQuickTitle(e.target.value)}
-                placeholder={t("tasks.quickAddPlaceholder")}
-                className="w-full h-10 rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-surface)] pl-9 pr-3 text-sm outline-none focus:border-[color:var(--color-border-strong)] transition-colors"
-              />
-            </div>
-          </form>
+        <div className="mb-4 flex justify-end">
           <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-[color:var(--color-surface-2)] shrink-0">
             <button
               onClick={() => setGroupBy("none")}
@@ -581,6 +567,29 @@ export default function TasksPage() {
           </div>
         )}
       </Card>
+
+      {!isTrash && (
+        <form
+          onSubmit={handleQuickAdd}
+          className="mt-3 flex items-center gap-2 rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 focus-within:border-[color:var(--color-border-strong)] transition-colors"
+        >
+          <Plus
+            size={18}
+            className="text-[color:var(--color-fg-subtle)] shrink-0"
+          />
+          <input
+            value={quickTitle}
+            onChange={(e) => setQuickTitle(e.target.value)}
+            placeholder={t("tasks.quickAddPlaceholder")}
+            className="flex-1 h-12 bg-transparent text-sm outline-none placeholder:text-[color:var(--color-fg-subtle)]"
+          />
+          {quickTitle.trim() && (
+            <Button type="submit" size="sm" disabled={quickAdding}>
+              {t("tasks.quickAddBtn")}
+            </Button>
+          )}
+        </form>
+      )}
         </div>
       </div>
 
