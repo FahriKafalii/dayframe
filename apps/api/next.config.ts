@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
-import path from "node:path";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sequelize", "pg", "pg-hstore"],
+  // Keep sequelize external (it relies on dynamic requires that can't be
+  // bundled). pg / pg-hstore are intentionally NOT external so Next bundles
+  // the Postgres driver into the serverless function; in this pnpm monorepo
+  // they are only symlinked into apps/api, and leaving them external made the
+  // function ship without pg ("Please install pg package manually") on Vercel.
+  serverExternalPackages: ["sequelize"],
   transpilePackages: [
     "@dayframe/db",
     "@dayframe/lib",
@@ -11,24 +15,6 @@ const nextConfig: NextConfig = {
     "@dayframe/services",
     "@dayframe/types",
   ],
-  // In this pnpm monorepo `pg` is hoisted to the repo root and only symlinked
-  // into apps/api. Point output file tracing at the monorepo root and force the
-  // native Postgres driver (and its transitive deps) into the serverless
-  // function so Sequelize can require("pg") at runtime on Vercel. Without this
-  // the function ships without pg and fails with "Please install pg manually".
-  outputFileTracingRoot: path.join(__dirname, "../../"),
-  outputFileTracingIncludes: {
-    "/api/**/*": [
-      "../../node_modules/.pnpm/pg@*/**",
-      "../../node_modules/.pnpm/pg-pool@*/**",
-      "../../node_modules/.pnpm/pg-protocol@*/**",
-      "../../node_modules/.pnpm/pg-types@*/**",
-      "../../node_modules/.pnpm/pg-connection-string@*/**",
-      "../../node_modules/.pnpm/pgpass@*/**",
-      "../../node_modules/.pnpm/pg-hstore@*/**",
-      "../../node_modules/.pnpm/pg-cloudflare@*/**",
-    ],
-  },
 };
 
 export default nextConfig;
